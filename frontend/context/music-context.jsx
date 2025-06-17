@@ -1,7 +1,7 @@
 "use client"
 
-import { createContext, useContext, useState } from "react"
-import { mockSongs } from "@/lib/mock-data"
+import { createContext, useContext, useState, useEffect } from "react"
+import { fetchSongs } from "@/lib/api"
 
 const MusicContext = createContext({
   currentSong: null,
@@ -16,15 +16,27 @@ export function MusicProvider({ children }) {
   const [currentSong, setCurrentSong] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [queue, setQueue] = useState([])
+  const [allSongs, setAllSongs] = useState([])
+
+  useEffect(() => {
+    async function loadSongs() {
+      try {
+        const songs = await fetchSongs()
+        setAllSongs(songs)
+      } catch (err) {
+        console.error("Failed to load songs:", err)
+      }
+    }
+    loadSongs()
+  }, [])
 
   const playSong = (song) => {
     setCurrentSong(song)
     setIsPlaying(true)
 
-    // In a real app, you would update the queue based on context
-    // For now, we'll just set the queue to all songs
-    const songIndex = mockSongs.findIndex((s) => s.id === song.id)
-    const newQueue = [...mockSongs.slice(songIndex + 1), ...mockSongs.slice(0, songIndex)]
+    // Update queue based on all songs
+    const songIndex = allSongs.findIndex((s) => s.id === song.id)
+    const newQueue = [...allSongs.slice(songIndex + 1), ...allSongs.slice(0, songIndex)]
     setQueue(newQueue)
   }
 
@@ -43,11 +55,19 @@ export function MusicProvider({ children }) {
   }
 
   const prevSong = () => {
-    // In a real app, you would have a history of played songs
-    // For now, we'll just go to a random song
-    const randomIndex = Math.floor(Math.random() * mockSongs.length)
-    setCurrentSong(mockSongs[randomIndex])
-    setIsPlaying(true)
+    // Use a random song from allSongs
+    if (allSongs.length > 0) {
+      const randomIndex = Math.floor(Math.random() * allSongs.length)
+      setCurrentSong(allSongs[randomIndex])
+      setIsPlaying(true)
+    }
+  }
+
+    // ✅ Thêm hàm reset
+  const resetPlayer = () => {
+    setCurrentSong(null)
+    setIsPlaying(false)
+    setQueue([])
   }
 
   return (
@@ -59,6 +79,7 @@ export function MusicProvider({ children }) {
         togglePlayPause,
         nextSong,
         prevSong,
+        resetPlayer,
       }}
     >
       {children}

@@ -1,10 +1,14 @@
 import Link from "next/link"
-import SongList from "../songs/song-list"
-import { mockSongs } from "@/lib/mock-data"
+import SongList from "../songs/song-list" // Sửa đường dẫn
+import { fetchSongs } from "@/lib/api"
 
-export default function NewReleases() {
-  // Get the newest songs
-  const newReleases = mockSongs.slice(0, 5)
+export default async function NewReleases() {
+  let newReleases = [];
+  try {
+    newReleases = await fetchSongs({ sort: "releaseYear", limit: 5 });
+  } catch (error) {
+    console.error("Error in NewReleases:", error);
+  }
 
   return (
     <section>
@@ -14,8 +18,11 @@ export default function NewReleases() {
           View All
         </Link>
       </div>
-
-      <SongList songs={newReleases} />
+      {newReleases.length ? (
+        <SongList songs={newReleases} />
+      ) : (
+        <p>No new releases available</p>
+      )}
     </section>
   )
 }

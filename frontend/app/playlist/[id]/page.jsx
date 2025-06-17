@@ -1,34 +1,52 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { use, useEffect, useState } from "react"
 import Image from "next/image"
 import { useMusic } from "@/context/music-context"
 import { Play, Clock, MoreHorizontal } from "lucide-react"
 import { formatDuration } from "@/lib/utils"
-import { mockPlaylists, mockSongs } from "@/lib/mock-data"
+import { fetchPlaylistById, fetchSongs } from "@/lib/api"
 
 export default function PlaylistPage({ params }) {
-  const { id } = params
-  const [playlist, setPlaylist] = useState(null)
+  const { id } = use(params) // ✅ unwrap params bằng use()
+  const [playlist, setPlaylist] = useState(null) // ✅ thêm useState cho playlist
   const [songs, setSongs] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const { playSong, currentSong, isPlaying, togglePlayPause } = useMusic()
 
   useEffect(() => {
-    // In a real app, fetch playlist data from API
-    const foundPlaylist = mockPlaylists.find((p) => p.id === Number.parseInt(id))
-    setPlaylist(foundPlaylist || mockPlaylists[0])
+    async function loadPlaylist() {
+      try {
+        setLoading(true)
+        const playlistData = await fetchPlaylistById(id)
+        setPlaylist(playlistData)
 
-    if (foundPlaylist) {
-      // Get songs for this playlist
-      const playlistSongs = mockSongs.filter((s) => foundPlaylist.songIds.includes(s.id))
-      setSongs(playlistSongs)
+        if (playlistData?.songIds) {
+          const allSongs = await fetchSongs()
+          const playlistSongs = allSongs.filter((s) => playlistData.songIds.includes(s.id))
+          setSongs(playlistSongs)
+        } else {
+          setSongs([])
+        }
+      } catch (err) {
+        console.error("Error loading playlist:", err)
+        setError("Failed to load playlist")
+      } finally {
+        setLoading(false)
+      }
     }
+    loadPlaylist()
   }, [id])
 
-  const totalDuration = songs.reduce((total, song) => total + song.duration, 0)
+  const totalDuration = songs.reduce((total, song) => total + (song.duration || 0), 0)
 
-  if (!playlist) {
+  if (loading) {
     return <div className="flex justify-center items-center h-[60vh]">Loading...</div>
+  }
+
+  if (error || !playlist) {
+    return <div className="flex justify-center items-center h-[60vh]">{error || "Playlist not found"}</div>
   }
 
   return (

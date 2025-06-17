@@ -4,13 +4,14 @@ import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useMusic } from "@/context/music-context"
+import { useUser } from "@/context/auth-context" 
 import { Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, Repeat, Shuffle, Heart } from "lucide-react"
 import { formatDuration } from "@/lib/utils"
 
 export default function Player() {
   const { currentSong, isPlaying, togglePlayPause, nextSong, prevSong } = useMusic()
 
-  const [volume, setVolume] = useState(80)
+  const [volume, setVolume] = useState(50)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [isMuted, setIsMuted] = useState(false)
@@ -26,7 +27,7 @@ export default function Player() {
       audioRef.current.play()
     }
   }, [currentSong])
-
+ 
   useEffect(() => {
     if (audioRef.current) {
       if (isPlaying) {

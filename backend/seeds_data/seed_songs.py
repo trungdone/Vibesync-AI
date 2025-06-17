@@ -1,11 +1,7 @@
-# seeds_data/seed_songs.py
-
 from database.db import songs_collection
+from bson import ObjectId
+songs_collection.delete_many({})
 
-# 🧹 Xóa dữ liệu cũ (nếu cần)
-songs_collection.delete_many({})  # Xóa hết bài hát hiện có
-
-# 🎵 Thêm danh sách bài hát mới
 songs = [
     {
         "title": "Blinding Lights",
@@ -15,7 +11,8 @@ songs = [
         "duration": 203,
         "genre": "Synth-pop",
         "coverArt": "/blinding-lights-album-cover.png",
-        "audioUrl": "https://yourserver.com/audio/blinding-lights.mp3"
+        "audioUrl": "/audio/AnhBoVai.mp3",
+        "artistId": "artist_1"  # Thêm artistId
     },
     {
         "title": "Shape of You",
@@ -24,8 +21,9 @@ songs = [
         "releaseYear": 2017,
         "duration": 233,
         "genre": "Pop",
-        "coverArt": "/shape-of-you.png",
-        "audioUrl": "https://yourserver.com/audio/shape-of-you.mp3"
+        "coverArt": "/ChungTaCuaHienTai.jpg",
+        "audioUrl": "/audio/gheQua.mp3",
+        "artistId": "artist_2"  # Thêm artistId
     },
     {
         "title": "Levitating",
@@ -34,15 +32,16 @@ songs = [
         "releaseYear": 2020,
         "duration": 203,
         "genre": "Disco-pop",
-        "coverArt": "/levitating.png",
-        "audioUrl": "https://yourserver.com/audio/levitating.mp3"
+        "coverArt": "/save-your-tears-album-cover",
+        "audioUrl": "/audio/matKetNoi.mp3",
+        "artistId": "artist_3"  # Thêm artistId
     }
 ]
 
 def seed_songs():
-    songs_collection.delete_many({})  # Xóa tất cả bài hát cũ
-    songs_collection.insert_many(songs)  # Chèn bài hát mới
+    songs_collection.delete_many({})
+    songs_collection.insert_many(songs)
     print("✅ Songs seeded successfully.")
-
+print(ObjectId())
 if __name__ == "__main__":
     seed_songs()

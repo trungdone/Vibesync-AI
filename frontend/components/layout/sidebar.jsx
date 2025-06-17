@@ -2,11 +2,21 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useState, useEffect } from "react"
 import { Home, Search, Library, PlusCircle, Music, Heart, Disc3, ListMusic } from "lucide-react"
-import { mockPlaylists } from "@/lib/mock-data"
+import { fetchPlaylists } from "@/lib/api"
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const [playlists, setPlaylists] = useState([])
+
+  useEffect(() => {
+    async function loadPlaylists() {
+      const playlistsData = await fetchPlaylists()
+      setPlaylists(playlistsData || [])
+    }
+    loadPlaylists()
+  }, [])
 
   const isActive = (path) => {
     return pathname === path
@@ -19,7 +29,7 @@ export default function Sidebar() {
           <div className="bg-purple-600 w-8 h-8 rounded-full flex items-center justify-center">
             <Music size={16} className="text-white" />
           </div>
-          <span className="text-xl font-bold">  VibeSync</span>
+          <span className="text-xl font-bold">VibeSync</span>
         </Link>
         <nav className="space-y-1">
           <Link
@@ -67,10 +77,10 @@ export default function Sidebar() {
               <span>Liked Songs</span>
             </Link>
 
-            {mockPlaylists.slice(0, 8).map((playlist) => (
+            {playlists.slice(0, 8).map((playlist) => (
               <Link
                 key={playlist.id}
-                href={`/playlist/${playlist.id}`}
+                href={`/playlist/${playlist.slug}`}  
                 className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5"
               >
                 <div className="w-6 h-6 flex items-center justify-center bg-white/10 rounded-sm">

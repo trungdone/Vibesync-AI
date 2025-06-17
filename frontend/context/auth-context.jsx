@@ -1,6 +1,8 @@
+// app/context/auth-context.jsx
 "use client"
 
 import { createContext, useContext, useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 const AuthContext = createContext({
   user: null,
@@ -13,74 +15,88 @@ const AuthContext = createContext({
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const router = useRouter()
 
-  // Check if user is already logged in
   useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-      setIsAuthenticated(true)
+    const token = localStorage.getItem("token")
+    if (token) {
+      verifyToken(token)
+    } else {
+      setIsAuthenticated(false)
     }
   }, [])
 
-  const signIn = async (email, password) => {
-    // In a real app, this would make an API call to authenticate
-    return new Promise((resolve, reject) => {
-      // Simulate API call
-      setTimeout(() => {
-        // Mock validation
-        if (email && password) {
-          const user = {
-            id: 1,
-            name: "John Doe",
-            email: email,
-            avatar: "/user-avatar-profile.png",
-          }
+  const verifyToken = async (token) => {
+    try {
+      const response = await fetch("http://localhost:8000/user/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (response.ok) {
+        const userData = await response.json()
+        setUser(userData)
+        setIsAuthenticated(true)
+      } else {
+        localStorage.removeItem("token")
+        setIsAuthenticated(false)
+        setUser(null)
+      }
+    } catch (err) {
+      console.error("Token verification error:", err)
+      localStorage.removeItem("token")
+      setIsAuthenticated(false)
+      setUser(null)
+    }
+  }
 
-          setUser(user)
-          setIsAuthenticated(true)
-          localStorage.setItem("user", JSON.stringify(user))
-          resolve(user)
-        } else {
-          reject(new Error("Invalid credentials"))
-        }
-      }, 500)
-    })
+  const signIn = async (email, password) => {
+    try {
+      const response = await fetch("http://localhost:8000/user/login", { // Sửa endpoint
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ username: email, password }),
+      })
+      const data = await response.json()
+      if (response.ok) {
+        localStorage.setItem("token", data.access_token)
+        await verifyToken(data.access_token)
+        router.push("/profile")
+      } else {
+        throw new Error(data.detail || "Invalid credentials")
+      }
+    } catch (err) {
+      throw new Error(err.message)
+    }
   }
 
   const signUp = async (name, email, password) => {
-    // In a real app, this would make an API call to register
-    return new Promise((resolve, reject) => {
-      // Simulate API call
-      setTimeout(() => {
-        // Mock validation
-        if (name && email && password) {
-          const user = {
-            id: 1,
-            name: name,
-            email: email,
-            avatar: "/user-avatar-profile.png",
-          }
-
-          setUser(user)
-          setIsAuthenticated(true)
-          localStorage.setItem("user", JSON.stringify(user))
-          resolve(user)
-        } else {
-          reject(new Error("Invalid information"))
-        }
-      }, 500)
-    })
+    try {
+      const response = await fetch("http://localhost:8000/user/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      })
+      const data = await response.json()
+      if (response.ok) {
+        router.push("/signin")
+      } else {
+        throw new Error(data.detail || "Failed to create account")
+      }
+    } catch (err) {
+      throw new Error(err.message)
+    }
   }
 
   const signOut = () => {
+    localStorage.removeItem("token")
     setUser(null)
     setIsAuthenticated(false)
-    localStorage.removeItem("user")
+    router.push("/signin")
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, signIn, signUp, signOut }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user, isAuthenticated, signIn, signUp, signOut }}>
+      {children}
+    </AuthContext.Provider>
   )
 }
 

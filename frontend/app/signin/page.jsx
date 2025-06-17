@@ -1,7 +1,7 @@
+// app/signin/page.jsx
 "use client"
 
 import { useState } from "react"
-import { useAuth } from "@/context/auth-context"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Music } from "lucide-react"
@@ -10,7 +10,6 @@ export default function SignInPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
-  const { signIn } = useAuth()
   const router = useRouter()
 
   const handleSubmit = async (e) => {
@@ -18,10 +17,20 @@ export default function SignInPage() {
     setError("")
 
     try {
-      await signIn(email, password)
-      router.push("/")
+      const response = await fetch("http://localhost:8000/user/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ username: email, password }),
+      })
+      const data = await response.json()
+      if (response.ok) {
+        localStorage.setItem("token", data.access_token)
+        router.push("/profile") // Chuyển hướng đến trang profile sau khi đăng nhập
+      } else {
+        setError(data.detail || "Invalid email or password")
+      }
     } catch (err) {
-      setError("Invalid email or password")
+      setError("An error occurred")
     }
   }
 

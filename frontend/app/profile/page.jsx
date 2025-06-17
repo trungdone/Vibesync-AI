@@ -1,26 +1,64 @@
 "use client"
 
-import { useAuth } from "@/context/auth-context"
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import SongList from "@/components/songs/song-list"
 import PlaylistGrid from "@/components/playlist/playlist-grid"
-import { mockPlaylists, mockSongs } from "@/lib/mock-data"
+import { fetchPlaylists, fetchSongs } from "@/lib/api"
+import { useRouter } from "next/navigation"
 
 export default function ProfilePage() {
-  const { user, isAuthenticated } = useAuth()
+  const [user, setUser] = useState(null)
+  const [playlists, setPlaylists] = useState([])
+  const [likedSongs, setLikedSongs] = useState([])
+  const [historySongs, setHistorySongs] = useState([])
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/signin")
-    }
-  }, [isAuthenticated, router])
+    const token = localStorage.getItem("token") // ✅ Lấy token trong useEffect
 
-  if (!isAuthenticated) {
-    return null
+    if (!token) {
+      router.push("/signin")
+      return
+    }
+
+    async function loadData() {
+      try {
+        setLoading(true)
+
+        const userResponse = await fetch("http://localhost:8000/user/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        const userData = await userResponse.json()
+
+        const detail = Array.isArray(userData.detail)
+          ? userData.detail.map(d => d.msg).join(", ")
+          : userData.detail || "Unauthorized"
+
+        if (!userResponse.ok) throw new Error(detail)
+        setUser(userData)
+
+        const playlistData = await fetchPlaylists()
+        setPlaylists(playlistData.slice(0, 8))
+
+        const songData = await fetchSongs()
+        setLikedSongs(songData.slice(0, 10))
+        setHistorySongs(songData.slice(10, 20))
+      } catch (err) {
+        console.error("Failed to load profile data:", err)
+        router.push("/signin")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [router])
+
+  if (loading || !user) {
+    return <div className="flex justify-center items-center h-[60vh]">Loading...</div>
   }
 
   return (
@@ -40,7 +78,7 @@ export default function ProfilePage() {
           <div className="flex gap-4 mt-2">
             <div>
               <span className="text-gray-400">Playlists</span>
-              <p className="font-semibold">12</p>
+              <p className="font-semibold">{playlists.length}</p>
             </div>
             <div>
               <span className="text-gray-400">Followers</span>
@@ -61,13 +99,13 @@ export default function ProfilePage() {
           <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
         <TabsContent value="playlists" className="mt-6">
-          <PlaylistGrid playlists={mockPlaylists.slice(0, 8)} />
+          <PlaylistGrid playlists={playlists} />
         </TabsContent>
         <TabsContent value="liked" className="mt-6">
-          <SongList songs={mockSongs.slice(0, 10)} />
+          <SongList songs={likedSongs} />
         </TabsContent>
         <TabsContent value="history" className="mt-6">
-          <SongList songs={mockSongs.slice(10, 20)} />
+          <SongList songs={historySongs} />
         </TabsContent>
       </Tabs>
     </div>

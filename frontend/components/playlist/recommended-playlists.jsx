@@ -1,11 +1,12 @@
 import Link from "next/link"
 import PlaylistGrid from "./playlist-grid"
-import { mockPlaylists } from "@/lib/mock-data"
+import { fetchPlaylists } from "@/lib/api"
 
-export default function RecommendedPlaylists() {
-  // Filter playlists that match user's personality
-  // In a real app, this would use an algorithm based on user preferences
-  const recommendedPlaylists = mockPlaylists.slice(0, 6)
+export default async function RecommendedPlaylists() {
+  // Fetch playlists from API
+  const playlistsData = await fetchPlaylists() || []
+  // Filter first 6 playlists
+  const recommendedPlaylists = playlistsData.slice(0, 6)
 
   return (
     <section>

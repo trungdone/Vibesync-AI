@@ -2,15 +2,26 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Search, Bell, ChevronDown } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
 import Image from "next/image"
+import { useMusic } from "@/context/music-context"
 
 export default function Header() {
   const pathname = usePathname()
+  const router = useRouter()
   const { user, isAuthenticated, signOut } = useAuth()
   const [showDropdown, setShowDropdown] = useState(false)
+  const { resetPlayer } = useMusic()
+
+    const handleSignOut = () => {
+    signOut()
+    resetPlayer() // ✅ Dừng và reset player khi đăng xuất
+    router.push("/signin")
+  }
+
+
 
   return (
     <header className="sticky top-0 z-10 bg-black/50 backdrop-blur-md px-4 py-3 flex items-center justify-between">
@@ -67,7 +78,9 @@ export default function Header() {
                     className="block w-full text-left px-4 py-2 text-sm hover:bg-white/10 text-red-400"
                     onClick={() => {
                       signOut()
+                      resetPlayer()
                       setShowDropdown(false)
+                      router.push("/signin") // ✅ Điều hướng về trang signin
                     }}
                   >
                     Sign out

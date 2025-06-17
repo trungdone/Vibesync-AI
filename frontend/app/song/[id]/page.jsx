@@ -1,37 +1,52 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { use, useEffect, useState } from "react"
 import Image from "next/image"
 import { useMusic } from "@/context/music-context"
 import { Heart, Share2, MoreHorizontal, Play } from "lucide-react"
 import { formatDuration } from "@/lib/utils"
-import { mockSongs, mockArtists } from "@/lib/mock-data"
+import { fetchSongById, fetchSongs, fetchArtistById } from "@/lib/api"
 import SongList from "@/components/songs/song-list"
 
 export default function SongDetailPage({ params }) {
-  const { id } = params
+  const { id } = use(params)
   const [song, setSong] = useState(null)
   const [artist, setArtist] = useState(null)
   const [relatedSongs, setRelatedSongs] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const { playSong } = useMusic()
 
   useEffect(() => {
-    // In a real app, fetch song data from API
-    const foundSong = mockSongs.find((s) => s.id === Number.parseInt(id))
-    setSong(foundSong || mockSongs[0])
+    async function loadSong() {
+      try {
+        setLoading(true)
+        const songData = await fetchSongById(id)
+        setSong(songData)
 
-    if (foundSong) {
-      const foundArtist = mockArtists.find((a) => a.id === foundSong.artistId)
-      setArtist(foundArtist)
+        if (songData?.artistId) {
+          const artistData = await fetchArtistById(songData.artistId)
+          setArtist(artistData)
+        }
 
-      // Get related songs by same artist
-      const related = mockSongs.filter((s) => s.id !== foundSong.id && s.artistId === foundSong.artistId)
-      setRelatedSongs(related)
+        const allSongs = await fetchSongs()
+        const related = allSongs.filter((s) => s.id !== songData.id && s.artistId === songData.artistId)
+        setRelatedSongs(related)
+      } catch (err) {
+        setError("Failed to load song")
+      } finally {
+        setLoading(false)
+      }
     }
+    loadSong()
   }, [id])
 
-  if (!song) {
+  if (loading) {
     return <div className="flex justify-center items-center h-[60vh]">Loading...</div>
+  }
+
+  if (error || !song) {
+    return <div className="flex justify-center items-center h-[60vh]">{error || "Song not found"}</div>
   }
 
   return (
@@ -44,7 +59,7 @@ export default function SongDetailPage({ params }) {
         <div className="flex-1 text-center md:text-left">
           <div className="mb-4">
             <h1 className="text-4xl font-bold mb-2">{song.title}</h1>
-            <p className="text-xl text-gray-300">{artist?.name}</p>
+            <p className="text-xl text-gray-300">{artist?.name || song.artist}</p>
             <p className="text-gray-400 mt-1">
               {song.album} • {song.releaseYear} • {formatDuration(song.duration)}
             </p>
@@ -72,7 +87,7 @@ export default function SongDetailPage({ params }) {
             <h3 className="text-xl font-semibold mb-2">About</h3>
             <p className="text-gray-300">
               {song.description ||
-                `"${song.title}" is a ${song.genre} song by ${artist?.name} from the album ${song.album}, released in ${song.releaseYear}.`}
+                `"${song.title}" is a ${song.genre} song by ${artist?.name || song.artist} from the album ${song.album}, released in ${song.releaseYear}.`}
             </p>
           </div>
         </div>
@@ -86,8 +101,8 @@ export default function SongDetailPage({ params }) {
       </div>
 
       <div>
-        <h3 className="text-xl font-semibold mb-4">More from {artist?.name}</h3>
-        <SongList songs={relatedSongs.length ? relatedSongs : mockSongs.slice(0, 5)} />
+        <h3 className="text-xl font-semibold mb-4">More from {artist?.name || song.artist}</h3>
+        <SongList songs={relatedSongs.length ? relatedSongs : []} />
       </div>
     </div>
   )

@@ -1,7 +1,7 @@
+// app/signup/page.jsx
 "use client"
 
 import { useState } from "react"
-import { useAuth } from "@/context/auth-context"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Music } from "lucide-react"
@@ -12,7 +12,6 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState("")
-  const { signUp } = useAuth()
   const router = useRouter()
 
   const handleSubmit = async (e) => {
@@ -25,10 +24,24 @@ export default function SignUpPage() {
     }
 
     try {
-      await signUp(name, email, password)
-      router.push("/")
+      const response = await fetch("http://localhost:8000/user/register", { 
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      })
+      const data = await response.json()
+if (response.ok) {
+  router.push("/signin")
+} else {
+  const errorMessage = Array.isArray(data.detail)
+    ? data.detail.map(err => err.msg).join(", ")
+    : data.detail || "Failed to create an account"
+
+  setError(errorMessage)
+}
+
     } catch (err) {
-      setError("Failed to create an account")
+      setError("An error occurred")
     }
   }
 

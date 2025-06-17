@@ -7,14 +7,10 @@ import { useMusic } from "@/context/music-context"
 import { formatDuration } from "@/lib/utils"
 
 export default function SongList({ songs }) {
-  const { playSong, currentSong, isPlaying, togglePlayPause } = useMusic()
+  const { playSong,isPlaying, currentSong, togglePlayPause } = useMusic();
 
-  const handlePlayClick = (song) => {
-    if (currentSong?.id === song.id) {
-      togglePlayPause()
-    } else {
-      playSong(song)
-    }
+  if (!songs || !songs.length) {
+    return <p>No songs available</p>;
   }
 
   return (
