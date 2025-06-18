@@ -1,38 +1,27 @@
 // app/signin/page.jsx
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Music } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { Music } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
 
 export default function SignInPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const router = useRouter()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const { signIn } = useAuth();
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError("")
+    e.preventDefault();
+    setError("");
 
     try {
-      const response = await fetch("http://localhost:8000/user/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ username: email, password }),
-      })
-      const data = await response.json()
-      if (response.ok) {
-        localStorage.setItem("token", data.access_token)
-        router.push("/profile") // Chuyển hướng đến trang profile sau khi đăng nhập
-      } else {
-        setError(data.detail || "Invalid email or password")
-      }
+      await signIn(email, password); // Sử dụng signIn từ AuthContext
     } catch (err) {
-      setError("An error occurred")
+      setError(err.message || "An error occurred");
     }
-  }
+  };
 
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
@@ -45,7 +34,11 @@ export default function SignInPage() {
           <p className="text-gray-400 mt-2">Sign in to continue to Melody</p>
         </div>
 
-        {error && <div className="bg-red-500/20 border border-red-500 text-white p-3 rounded-lg">{error}</div>}
+        {error && (
+          <div className="bg-red-500/20 border border-red-500 text-white p-3 rounded-lg">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -115,5 +108,5 @@ export default function SignInPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

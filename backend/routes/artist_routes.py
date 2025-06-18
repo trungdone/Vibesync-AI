@@ -15,3 +15,5 @@ async def get_artist(id: str):
         return artist
     except Exception as e:
         raise HTTPException(status_code=400, detail="Invalid artist ID")
+
+

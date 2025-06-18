@@ -20,18 +20,31 @@ export default function Header() {
     resetPlayer() // ✅ Dừng và reset player khi đăng xuất
     router.push("/signin")
   }
-
-
+const handleSearch = (e) => {
+  if (pathname.startsWith("/admin")) {
+    console.log("Admin search:", e.target.value);
+    // TODO: Gọi API tìm kiếm admin (ví dụ: /admin/search?query=...)
+  } else {
+    console.log("User search:", e.target.value);
+    // TODO: Gọi API tìm kiếm user
+  }
+};
 
   return (
     <header className="sticky top-0 z-10 bg-black/50 backdrop-blur-md px-4 py-3 flex items-center justify-between">
       <div className="relative w-full max-w-md">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
         <input
-          type="text"
-          placeholder="Search for songs, artists, or playlists..."
-          className="w-full bg-white/10 border border-white/10 rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600"
-        />
+  type="text"
+  placeholder={
+    pathname.startsWith("/admin")
+      ? "Search for users, songs, or settings..."
+      : "Search for songs, artists, or playlists..."
+  }
+  onChange={handleSearch}
+  className="w-full bg-white/10 border border-white/10 rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600"
+/>
+        
       </div>
 
       <div className="flex items-center gap-4">

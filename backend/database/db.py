@@ -4,7 +4,7 @@ from passlib.context import CryptContext
 from bson import ObjectId
 import datetime
 
-client = MongoClient("mongodb+srv://trungdnbh00901:U3GJNIFeo5y26W7X@vibesync.gaqe5kb.mongodb.net/?retryWrites=true&w=majority")
+client = MongoClient("mongodb+srv://trungdnbh00901:trudo42@vibesync.gaqe5kb.mongodb.net/?retryWrites=true&w=majority")
 #client = MongoClient("mongodb://localhost:27017/")
 db = client["Vibesync"]
 
@@ -15,6 +15,7 @@ songs_collection = db["songs"]
 artists_collection =db["artists"]
 users_collection = db["users"]
 song_history_collection = db["song_history"]
+
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
