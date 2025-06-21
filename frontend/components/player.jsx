@@ -1,33 +1,40 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { useMusic } from "@/context/music-context"
-import { useUser } from "@/context/auth-context" 
-import { Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, Repeat, Shuffle, Heart } from "lucide-react"
-import { formatDuration } from "@/lib/utils"
+import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useMusic } from "@/context/music-context";
+import {
+  Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX,
+  Repeat, Shuffle, Heart
+} from "lucide-react";
+import { formatDuration } from "@/lib/utils";
 
 export default function Player() {
-  const { currentSong, isPlaying, togglePlayPause, nextSong, prevSong } = useMusic()
+  const {
+    currentSong,
+    isPlaying,
+    togglePlayPause,
+    nextSong,
+    prevSong,
+    audioRef,
+  } = useMusic();
 
-  const [volume, setVolume] = useState(50)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const [isMuted, setIsMuted] = useState(false)
-  const [isShuffling, setIsShuffling] = useState(false)
-  const [repeatMode, setRepeatMode] = useState(0) // 0: no repeat, 1: repeat all, 2: repeat one
-  const [isLiked, setIsLiked] = useState(false)
-
-  const audioRef = useRef(null)
-  const progressBarRef = useRef(null)
+  const [volume, setVolume] = useState(50);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isShuffling, setIsShuffling] = useState(false);
+  const [repeatMode, setRepeatMode] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
+  const progressBarRef = useRef(null);
 
   useEffect(() => {
     if (currentSong && audioRef.current) {
       audioRef.current.play()
     }
   }, [currentSong])
- 
+
   useEffect(() => {
     if (audioRef.current) {
       if (isPlaying) {
@@ -38,78 +45,77 @@ export default function Player() {
     }
   }, [isPlaying])
 
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume / 100;
+    }
+  }, [volume]);
+
   const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime)
-      setDuration(audioRef.current.duration || 0)
+    const audio = audioRef.current;
+    if (audio) {
+      setCurrentTime(audio.currentTime);
+      setDuration(audio.duration || 0);
     }
-  }
+  };
 
-  const handleProgressChange = (e) => {
-    const progressBar = progressBarRef.current
-    const rect = progressBar.getBoundingClientRect()
-    const pos = (e.clientX - rect.left) / progressBar.offsetWidth
+const handleProgressChange = (e) => {
+  const audio = audioRef.current;
+  const progressBar = progressBarRef.current;
+  if (!audio || !progressBar || isNaN(audio.duration)) return;
 
-    if (audioRef.current) {
-      audioRef.current.currentTime = pos * audioRef.current.duration
-    }
+  const rect = progressBar.getBoundingClientRect();
+  const pos = (e.clientX - rect.left) / rect.width;
+
+  const newTime = pos * audio.duration;
+
+  if (isFinite(newTime)) {
+    audio.currentTime = newTime;
   }
+};
+
 
   const handleVolumeChange = (e) => {
-    const newVolume = Number.parseInt(e.target.value)
-    setVolume(newVolume)
-
-    if (audioRef.current) {
-      audioRef.current.volume = newVolume / 100
-    }
-
-    if (newVolume === 0) {
-      setIsMuted(true)
-    } else {
-      setIsMuted(false)
-    }
-  }
+    const newVol = parseInt(e.target.value);
+    setVolume(newVol);
+    setIsMuted(newVol === 0);
+  };
 
   const toggleMute = () => {
-    if (audioRef.current) {
-      if (isMuted) {
-        audioRef.current.volume = volume / 100
-        setIsMuted(false)
-      } else {
-        audioRef.current.volume = 0
-        setIsMuted(true)
-      }
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isMuted) {
+      audio.volume = volume / 100;
+      setIsMuted(false);
+    } else {
+      audio.volume = 0;
+      setIsMuted(true);
     }
-  }
+  };
 
-  const toggleRepeat = () => {
-    setRepeatMode((prev) => (prev + 1) % 3)
-  }
-
-  const toggleShuffle = () => {
-    setIsShuffling(!isShuffling)
-  }
-
-  const toggleLike = () => {
-    setIsLiked(!isLiked)
-  }
+  const toggleRepeat = () => setRepeatMode((prev) => (prev + 1) % 3);
+  const toggleShuffle = () => setIsShuffling(!isShuffling);
+  const toggleLike = () => setIsLiked(!isLiked);
 
   if (!currentSong) {
     return (
       <div className="h-20 bg-black/50 backdrop-blur-md border-t border-white/10 px-4 flex items-center justify-center text-gray-400">
         No song is currently playing
       </div>
-    )
+    );
   }
 
   return (
     <div className="h-20 bg-black/50 backdrop-blur-md border-t border-white/10 px-4 flex items-center">
       <audio
         ref={audioRef}
-        src={currentSong.audioUrl || "https://example.com/song.mp3"}
+        src={currentSong.audioUrl}
+        type="audio/mpeg"
         onTimeUpdate={handleTimeUpdate}
         onEnded={nextSong}
         loop={repeatMode === 2}
+        autoPlay
       />
 
       <div className="flex items-center gap-4 w-1/4">
@@ -132,7 +138,10 @@ export default function Player() {
             {currentSong.artist}
           </Link>
         </div>
-        <button className={`text-gray-400 hover:text-white ${isLiked ? "text-purple-500" : ""}`} onClick={toggleLike}>
+        <button
+          className={`text-gray-400 hover:text-white ${isLiked ? "text-purple-500" : ""}`}
+          onClick={toggleLike}
+        >
           <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
         </button>
       </div>
@@ -196,5 +205,5 @@ export default function Player() {
         />
       </div>
     </div>
-  )
+  );
 }

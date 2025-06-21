@@ -1,52 +1,57 @@
 "use client"
 
-import { use, useEffect, useState } from "react"
-import Image from "next/image"
-import { useMusic } from "@/context/music-context"
-import { Play, Clock, MoreHorizontal } from "lucide-react"
-import { formatDuration } from "@/lib/utils"
-import { fetchPlaylistById, fetchSongs } from "@/lib/api"
+import { use, useEffect, useState } from "react";
+import Image from "next/image";
+import { useMusic } from "@/context/music-context";
+import { Play, Clock, MoreHorizontal } from "lucide-react";
+import { formatDuration } from "@/lib/utils";
+import { fetchPlaylistById, fetchSongs } from "@/lib/api";
 
 export default function PlaylistPage({ params }) {
-  const { id } = use(params) // ✅ unwrap params bằng use()
-  const [playlist, setPlaylist] = useState(null) // ✅ thêm useState cho playlist
-  const [songs, setSongs] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const { playSong, currentSong, isPlaying, togglePlayPause } = useMusic()
+  const { id } = use(params); // ✅ unwrap params bằng use()
+  const [playlist, setPlaylist] = useState(null); // ✅ thêm useState cho playlist
+  const [songs, setSongs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { playSong, currentSong, isPlaying, togglePlayPause } = useMusic();
 
   useEffect(() => {
     async function loadPlaylist() {
       try {
-        setLoading(true)
-        const playlistData = await fetchPlaylistById(id)
-        setPlaylist(playlistData)
+        setLoading(true);
+        const playlistData = await fetchPlaylistById(id);
+        setPlaylist(playlistData);
 
         if (playlistData?.songIds) {
-          const allSongs = await fetchSongs()
-          const playlistSongs = allSongs.filter((s) => playlistData.songIds.includes(s.id))
-          setSongs(playlistSongs)
+          const allSongs = await fetchSongs();
+          // Kiểm tra và xử lý allSongs
+          const songsArray = Array.isArray(allSongs) ? allSongs : allSongs?.songs || [];
+          if (songsArray.length === 0) {
+            console.warn("No songs data available.");
+          }
+          const playlistSongs = songsArray.filter((s) => playlistData.songIds.includes(s.id));
+          setSongs(playlistSongs);
         } else {
-          setSongs([])
+          setSongs([]);
         }
       } catch (err) {
-        console.error("Error loading playlist:", err)
-        setError("Failed to load playlist")
+        console.error("Error loading playlist:", err);
+        setError("Failed to load playlist");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
-    loadPlaylist()
-  }, [id])
+    loadPlaylist();
+  }, [id]);
 
-  const totalDuration = songs.reduce((total, song) => total + (song.duration || 0), 0)
+  const totalDuration = songs.reduce((total, song) => total + (song.duration || 0), 0);
 
   if (loading) {
-    return <div className="flex justify-center items-center h-[60vh]">Loading...</div>
+    return <div className="flex justify-center items-center h-[60vh]">Loading...</div>;
   }
 
   if (error || !playlist) {
-    return <div className="flex justify-center items-center h-[60vh]">{error || "Playlist not found"}</div>
+    return <div className="flex justify-center items-center h-[60vh]">{error || "Playlist not found"}</div>;
   }
 
   return (
@@ -67,7 +72,10 @@ export default function PlaylistPage({ params }) {
           </div>
 
           <div className="flex flex-wrap gap-4 justify-center md:justify-start mt-6">
-            <button className="btn-primary flex items-center gap-2" onClick={() => songs.length && playSong(songs[0])}>
+            <button
+              className="btn-primary flex items-center gap-2"
+              onClick={() => songs.length && playSong(songs[0])}
+            >
               <Play size={18} /> Play All
             </button>
           </div>
@@ -128,5 +136,5 @@ export default function PlaylistPage({ params }) {
         </div>
       </div>
     </div>
-  )
+  );
 }

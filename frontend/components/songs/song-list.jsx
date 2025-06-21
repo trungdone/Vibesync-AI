@@ -1,17 +1,23 @@
-"use client"
+// components/songs/song-list.jsx
+"use client";
 
-import Image from "next/image"
-import Link from "next/link"
-import { Play, MoreHorizontal } from "lucide-react"
-import { useMusic } from "@/context/music-context"
-import { formatDuration } from "@/lib/utils"
+import Image from "next/image";
+import Link from "next/link";
+import { Play, MoreHorizontal } from "lucide-react";
+import { useMusic } from "@/context/music-context";
+import { formatDuration } from "@/lib/utils";
 
 export default function SongList({ songs }) {
-  const { playSong,isPlaying, currentSong, togglePlayPause } = useMusic();
+  const { playSong, isPlaying, currentSong, togglePlayPause } = useMusic();
 
   if (!songs || !songs.length) {
     return <p>No songs available</p>;
   }
+
+  const handlePlayClick = (song) => {
+    playSong(song);
+    togglePlayPause();
+  };
 
   return (
     <div className="bg-white/5 rounded-lg overflow-hidden">
@@ -51,7 +57,12 @@ export default function SongList({ songs }) {
               <td className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0">
-                    <Image src={song.coverArt || "/placeholder.svg"} alt={song.title} fill className="object-cover" />
+                    <Image
+                      src={song.coverArt || "/placeholder.svg"}
+                      alt={song.title}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                   <div>
                     <Link href={`/song/${song.id}`} className="font-medium hover:underline">
@@ -61,8 +72,10 @@ export default function SongList({ songs }) {
                   </div>
                 </div>
               </td>
-              <td className="p-4 text-gray-400 hidden md:table-cell">{song.album}</td>
-              <td className="p-4 text-gray-400 hidden md:table-cell">{formatDuration(song.duration)}</td>
+              <td className="p-4 text-gray-400 hidden md:table-cell">{song.album || "N/A"}</td>
+              <td className="p-4 text-gray-400 hidden md:table-cell">
+                {formatDuration(song.duration) || "0:00"}
+              </td>
               <td className="p-4">
                 <button className="text-gray-400 hover:text-white">
                   <MoreHorizontal size={18} />
@@ -73,5 +86,5 @@ export default function SongList({ songs }) {
         </tbody>
       </table>
     </div>
-  )
+  );
 }

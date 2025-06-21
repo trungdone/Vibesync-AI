@@ -29,7 +29,7 @@ users = [
 ]
 
 def seed_users():
-    users_collection.delete_many({})  # Xóa dữ liệu cũ
+    
     users_collection.insert_many(users)
     print("✅ Users seeded successfully.")
 

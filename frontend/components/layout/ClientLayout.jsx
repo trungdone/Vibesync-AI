@@ -44,6 +44,7 @@ export default function ClientLayout({ children }) {
         </div>
         <Player />
       </div>
+      
     </MusicProvider>
   );
 }

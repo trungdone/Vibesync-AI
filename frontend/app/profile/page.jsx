@@ -1,64 +1,69 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import Image from "next/image"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import SongList from "@/components/songs/song-list"
-import PlaylistGrid from "@/components/playlist/playlist-grid"
-import { fetchPlaylists, fetchSongs } from "@/lib/api"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import SongList from "@/components/songs/song-list";
+import PlaylistGrid from "@/components/playlist/playlist-grid";
+import { fetchPlaylists, fetchSongs } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
-  const [user, setUser] = useState(null)
-  const [playlists, setPlaylists] = useState([])
-  const [likedSongs, setLikedSongs] = useState([])
-  const [historySongs, setHistorySongs] = useState([])
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
+  const [user, setUser] = useState(null);
+  const [playlists, setPlaylists] = useState([]);
+  const [likedSongs, setLikedSongs] = useState([]);
+  const [historySongs, setHistorySongs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("token") // ✅ Lấy token trong useEffect
+    const token = localStorage.getItem("token"); // ✅ Lấy token trong useEffect
 
     if (!token) {
-      router.push("/signin")
-      return
+      router.push("/signin");
+      return;
     }
 
     async function loadData() {
       try {
-        setLoading(true)
+        setLoading(true);
 
         const userResponse = await fetch("http://localhost:8000/user/me", {
           headers: { Authorization: `Bearer ${token}` },
-        })
-        const userData = await userResponse.json()
+        });
+        const userData = await userResponse.json();
 
         const detail = Array.isArray(userData.detail)
-          ? userData.detail.map(d => d.msg).join(", ")
-          : userData.detail || "Unauthorized"
+          ? userData.detail.map((d) => d.msg).join(", ")
+          : userData.detail || "Unauthorized";
 
-        if (!userResponse.ok) throw new Error(detail)
-        setUser(userData)
+        if (!userResponse.ok) throw new Error(detail);
+        setUser(userData);
 
-        const playlistData = await fetchPlaylists()
-        setPlaylists(playlistData.slice(0, 8))
+        const playlistData = await fetchPlaylists();
+        setPlaylists(playlistData.slice(0, 8) || []);
 
-        const songData = await fetchSongs()
-        setLikedSongs(songData.slice(0, 10))
-        setHistorySongs(songData.slice(10, 20))
+        const songData = await fetchSongs();
+        // Kiểm tra và xử lý songData
+        const songs = Array.isArray(songData) ? songData : songData?.songs || [];
+        if (songs.length === 0) {
+          console.warn("No songs data available.");
+        }
+        setLikedSongs(songs.slice(0, 10));
+        setHistorySongs(songs.slice(10, 20));
       } catch (err) {
-        console.error("Failed to load profile data:", err)
-        router.push("/signin")
+        console.error("Failed to load profile data:", err);
+        router.push("/signin");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    loadData()
-  }, [router])
+    loadData();
+  }, [router]);
 
   if (loading || !user) {
-    return <div className="flex justify-center items-center h-[60vh]">Loading...</div>
+    return <div className="flex justify-center items-center h-[60vh]">Loading...</div>;
   }
 
   return (
@@ -109,5 +114,5 @@ export default function ProfilePage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

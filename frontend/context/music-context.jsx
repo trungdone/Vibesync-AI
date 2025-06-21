@@ -1,90 +1,94 @@
-"use client"
+"use client";
 
-import { createContext, useContext, useState, useEffect } from "react"
-import { fetchSongs } from "@/lib/api"
+import { createContext, useContext, useState, useEffect, useRef } from "react";
+import { fetchSongs } from "@/lib/api";
 
-const MusicContext = createContext({
-  currentSong: null,
-  isPlaying: false,
-  playSong: () => {},
-  togglePlayPause: () => {},
-  nextSong: () => {},
-  prevSong: () => {},
-})
+const MusicContext = createContext();
 
 export function MusicProvider({ children }) {
-  const [currentSong, setCurrentSong] = useState(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [queue, setQueue] = useState([])
-  const [allSongs, setAllSongs] = useState([])
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentSong, setCurrentSong] = useState(null);
+  const [songs, setSongs] = useState([]);
+  const audioRef = useRef(null); // Shared audioRef for <audio> element
 
   useEffect(() => {
     async function loadSongs() {
       try {
-        const songs = await fetchSongs()
-        setAllSongs(songs)
-      } catch (err) {
-        console.error("Failed to load songs:", err)
+        const data = await fetchSongs();
+        setSongs(data.songs || []);
+      } catch (error) {
+        console.error("Error loading songs:", error);
       }
     }
-    loadSongs()
-  }, [])
+    loadSongs();
+  }, []);
 
   const playSong = (song) => {
-    setCurrentSong(song)
-    setIsPlaying(true)
-
-    // Update queue based on all songs
-    const songIndex = allSongs.findIndex((s) => s.id === song.id)
-    const newQueue = [...allSongs.slice(songIndex + 1), ...allSongs.slice(0, songIndex)]
-    setQueue(newQueue)
-  }
+    setCurrentSong(song);
+    setIsPlaying(true);
+  };
 
   const togglePlayPause = () => {
-    setIsPlaying(!isPlaying)
-  }
+    if (!audioRef.current) return;
 
-  const nextSong = () => {
-    if (queue.length > 0) {
-      const nextSong = queue[0]
-      const newQueue = queue.slice(1)
-      setCurrentSong(nextSong)
-      setQueue(newQueue)
-      setIsPlaying(true)
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play().catch((err) => console.error("Play error:", err));
     }
+
+    setIsPlaying((prev) => !prev);
+  };
+
+const nextSong = () => {
+  const currentIndex = songs.findIndex((s) => s.id === currentSong?.id);
+  const next = songs[(currentIndex + 1) % songs.length];
+  if (next) {
+    setCurrentSong(next);
+    setIsPlaying(true);
+
+    // Thêm đoạn này để phát ngay bài mới
+    setTimeout(() => {
+      if (audioRef.current) {
+        audioRef.current.play().catch((err) => console.error("Play error on nextSong:", err));
+      }
+    }, 100);
   }
+};
+
 
   const prevSong = () => {
-    // Use a random song from allSongs
-    if (allSongs.length > 0) {
-      const randomIndex = Math.floor(Math.random() * allSongs.length)
-      setCurrentSong(allSongs[randomIndex])
-      setIsPlaying(true)
-    }
-  }
+    const currentIndex = songs.findIndex((s) => s.id === currentSong?.id);
+    const prev = songs[(currentIndex - 1 + songs.length) % songs.length];
+    if (prev) playSong(prev);
+  };
 
-    // ✅ Thêm hàm reset
   const resetPlayer = () => {
-    setCurrentSong(null)
-    setIsPlaying(false)
-    setQueue([])
-  }
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    setCurrentSong(null);
+    setIsPlaying(false);
+  };
 
   return (
     <MusicContext.Provider
       value={{
-        currentSong,
+        songs,
         isPlaying,
+        currentSong,
         playSong,
         togglePlayPause,
         nextSong,
         prevSong,
         resetPlayer,
+        audioRef, // Expose audioRef
       }}
     >
       {children}
     </MusicContext.Provider>
-  )
+  );
 }
 
-export const useMusic = () => useContext(MusicContext)
+export const useMusic = () => useContext(MusicContext);

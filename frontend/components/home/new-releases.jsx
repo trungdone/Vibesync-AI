@@ -1,13 +1,16 @@
-import Link from "next/link"
-import SongList from "../songs/song-list" // Sửa đường dẫn
-import { fetchSongs } from "@/lib/api"
+import Link from "next/link";
+import SongList from "../songs/song-list"; // Sửa đường dẫn
+import { fetchSongs } from "@/lib/api";
 
 export default async function NewReleases() {
   let newReleases = [];
   try {
     newReleases = await fetchSongs({ sort: "releaseYear", limit: 5 });
+    // Kiểm tra và trích xuất mảng songs nếu newReleases là object
+    newReleases = Array.isArray(newReleases) ? newReleases : newReleases?.songs || [];
   } catch (error) {
     console.error("Error in NewReleases:", error);
+    newReleases = [];
   }
 
   return (
@@ -18,11 +21,11 @@ export default async function NewReleases() {
           View All
         </Link>
       </div>
-      {newReleases.length ? (
+      {newReleases.length > 0 ? (
         <SongList songs={newReleases} />
       ) : (
         <p>No new releases available</p>
       )}
     </section>
-  )
+  );
 }

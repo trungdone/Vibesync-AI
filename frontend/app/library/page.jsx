@@ -1,49 +1,54 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import SongList from "@/components/songs/song-list"
-import PlaylistGrid from "@/components/playlist/playlist-grid"
-import { fetchPlaylists, fetchSongs } from "@/lib/api"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import SongList from "@/components/songs/song-list";
+import PlaylistGrid from "@/components/playlist/playlist-grid";
+import { fetchPlaylists, fetchSongs } from "@/lib/api";
 
 export default function LibraryPage() {
-  const [playlists, setPlaylists] = useState([])
-  const [likedSongs, setLikedSongs] = useState([])
-  const [historySongs, setHistorySongs] = useState([])
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
-  const token = localStorage.getItem("token")
+  const [playlists, setPlaylists] = useState([]);
+  const [likedSongs, setLikedSongs] = useState([]);
+  const [historySongs, setHistorySongs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     if (!token) {
-      router.push("/signin")
+      router.push("/signin");
     } else {
       async function loadData() {
         try {
-          setLoading(true)
+          setLoading(true);
 
           // Gọi playlist
-          const playlistData = await fetchPlaylists()
-          setPlaylists(playlistData || [])
+          const playlistData = await fetchPlaylists();
+          setPlaylists(playlistData || []);
 
-          // Gọi song (mocked)
-          const songData = await fetchSongs()
-          setLikedSongs(songData.slice(0, 10))
-          setHistorySongs(songData.slice(10, 20))
+          // Gọi song
+          const songData = await fetchSongs();
+          // Kiểm tra và xử lý songData
+          const songs = Array.isArray(songData) ? songData : songData?.songs || [];
+          if (songs.length === 0) {
+            console.warn("No songs data available.");
+          }
+          setLikedSongs(songs.slice(0, 10));
+          setHistorySongs(songs.slice(10, 20));
         } catch (err) {
-          console.error("Failed to load library:", err)
-          router.push("/signin")
+          console.error("Failed to load library:", err);
+          router.push("/signin");
         } finally {
-          setLoading(false)
+          setLoading(false);
         }
       }
 
-      loadData()
+      loadData();
     }
-  }, [token, router])
+  }, [token, router]);
 
   if (!token || loading) {
-    return <div className="flex justify-center items-center h-[60vh]">Loading...</div>
+    return <div className="flex justify-center items-center h-[60vh]">Loading...</div>;
   }
 
   return (
@@ -65,5 +70,5 @@ export default function LibraryPage() {
         <SongList songs={historySongs} />
       </div>
     </div>
-  )
+  );
 }

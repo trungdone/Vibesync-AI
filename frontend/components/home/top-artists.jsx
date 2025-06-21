@@ -1,9 +1,12 @@
-import Image from "next/image"
-import Link from "next/link"
-import { mockArtists } from "@/lib/mock-data"
+// components/home/top-artists.jsx
+import Image from "next/image";
+import Link from "next/link";
+import { fetchArtists } from "@/lib/api";
 
-export default function TopArtists() {
-  const topArtists = mockArtists.slice(0, 6)
+export default async function TopArtists() {
+  const data = await fetchArtists() || {};
+  const artists = data.artists || [];
+  const topArtists = artists.slice(0, 3);
 
   return (
     <section>
@@ -19,17 +22,17 @@ export default function TopArtists() {
           <Link key={artist.id} href={`/artist/${artist.id}`} className="group">
             <div className="relative aspect-square rounded-full overflow-hidden mb-3 group-hover:shadow-lg group-hover:shadow-purple-500/20 transition-all">
               <Image
-                src={artist.image || "/placeholder.svg"}
+                src={artist.songs && artist.songs[0]?.coverArt || "/placeholder.svg"}
                 alt={artist.name}
                 fill
                 className="object-cover group-hover:scale-105 transition-transform"
               />
             </div>
             <h3 className="font-medium text-center truncate">{artist.name}</h3>
-            <p className="text-sm text-gray-400 text-center">{artist.genre}</p>
+            <p className="text-sm text-gray-400 text-center">{artist.songs && artist.songs[0]?.genre || "Unknown"}</p>
           </Link>
         ))}
       </div>
     </section>
-  )
+  );
 }

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/hooks/use-toast";
 
+
 export default function SongsPage() {
   const { user } = useAuth();
   const { toast } = useToast();

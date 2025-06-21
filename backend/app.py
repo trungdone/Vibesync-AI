@@ -1,7 +1,7 @@
 # app.py - Entry point for FastAPI backend
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import  song_routes, user_routes, playlist_routes
+from routes import  song_routes, user_routes, playlist_routes, artist_routes, albums_routes
 from fastapi.staticfiles import StaticFiles
 app = FastAPI()
 
@@ -19,6 +19,8 @@ app.add_middleware(
 app.include_router(song_routes.router, prefix="/api")
 app.include_router(user_routes.router, prefix="/user")
 app.include_router(playlist_routes.router, prefix="/api")
+app.include_router(artist_routes.router, prefix="/api")  # Đảm bảo thêm artists_router
+app.include_router(albums_routes.router, prefix="/api")
 
 
 @app.get("/")

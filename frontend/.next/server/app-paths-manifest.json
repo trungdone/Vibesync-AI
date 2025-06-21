@@ -1,10 +1,10 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
-  "/profile/page": "app/profile/page.js",
   "/signin/page": "app/signin/page.js",
-  "/playlist/[id]/page": "app/playlist/[id]/page.js",
-  "/library/page": "app/library/page.js",
+  "/profile/page": "app/profile/page.js",
+  "/page": "app/page.js",
+  "/song/[id]/page": "app/song/[id]/page.js",
+  "/signup/page": "app/signup/page.js",
   "/admin/dashboard/page": "app/admin/dashboard/page.js",
-  "/admin/users/page": "app/admin/users/page.js",
-  "/admin/songs/page": "app/admin/songs/page.js"
+  "/admin/users/page": "app/admin/users/page.js"
 }
