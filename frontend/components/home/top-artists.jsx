@@ -6,7 +6,7 @@ import { fetchArtists } from "@/lib/api";
 export default async function TopArtists() {
   const data = await fetchArtists() || {};
   const artists = data.artists || [];
-  const topArtists = artists.slice(0, 3);
+  const topArtists = artists.slice(0, 12);
 
   return (
     <section>
@@ -22,14 +22,16 @@ export default async function TopArtists() {
           <Link key={artist.id} href={`/artist/${artist.id}`} className="group">
             <div className="relative aspect-square rounded-full overflow-hidden mb-3 group-hover:shadow-lg group-hover:shadow-purple-500/20 transition-all">
               <Image
-                src={artist.songs && artist.songs[0]?.coverArt || "/placeholder.svg"}
+                src={artist.image || "/placeholder.svg"}
                 alt={artist.name}
                 fill
                 className="object-cover group-hover:scale-105 transition-transform"
               />
             </div>
             <h3 className="font-medium text-center truncate">{artist.name}</h3>
-            <p className="text-sm text-gray-400 text-center">{artist.songs && artist.songs[0]?.genre || "Unknown"}</p>
+            <p className="text-sm text-gray-400 text-center">
+              {Array.isArray(artist.genres) && artist.genres.length > 0 ? artist.genres[0] : "Unknown"}
+            </p>
           </Link>
         ))}
       </div>

@@ -9,14 +9,7 @@ import os
 
 # Tải biến môi trường từ .env
 load_dotenv()
-
-# Cấu hình Cloudinary
-cloudinary_config = {
-    "cloud_name": os.getenv("CLOUDINARY_CLOUD_NAME", "dhifiomji"),
-    "api_key": os.getenv("CLOUDINARY_API_KEY", "467596386185684"),
-    "api_secret": os.getenv("CLOUDINARY_API_SECRET", "cN3IFilAA5xzMMzi_AeLgoHRLBs")
-}
-config(**cloudinary_config)  # Sử dụng cloudinary.config thay vì upload.configure
+ 
 
 # Xóa dữ liệu cũ
 songs_collection.delete_many({})
@@ -52,7 +45,14 @@ def is_url_accessible(url):
     except:
         return False
 
-# Seed songs với artistId khớp
+# Cấu hình Cloudinary
+cloudinary_config = {
+    "cloud_name": os.getenv("CLOUDINARY_CLOUD_NAME", "dhifiomji"),
+    "api_key": os.getenv("CLOUDINARY_API_KEY", "467596386185684"),
+    "api_secret": os.getenv("CLOUDINARY_API_SECRET", "cN3IFilAA5xzMMzi_AeLgoHRLBs")
+}
+config(**cloudinary_config)
+
 songs = [
     {
         "title": "Blinding Lights",

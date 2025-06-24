@@ -1,93 +1,121 @@
-# services/artist_service.py
-from database.db import artists_collection, songs_collection, albums_collection
 from bson import ObjectId
+from bson.errors import InvalidId
 from datetime import datetime
 from typing import List, Optional
-from models.artist import ArtistCreate, ArtistUpdate, ArtistInDB
+from fastapi import HTTPException
+from models.artist import ArtistCreate, ArtistUpdate, ArtistInDB, SongData, AlbumData
+from database.repositories.artist_repository import ArtistRepository
+from database.repositories.song_repository import SongRepository
+from database.repositories.album_repository import AlbumRepository
 
 class ArtistService:
-    @staticmethod
-    def get_all_artists(limit: Optional[int] = None) -> List[ArtistInDB]:
-        query = {}
-        cursor = artists_collection.find(query)
-        if limit:
-            cursor = cursor.limit(limit)
-        artists = list(cursor)
-        return [
-            ArtistInDB(
-                id=str(artist["_id"]),
-                name=artist.get("name", ""),
-                bio=artist.get("bio", ""),
-                image=artist.get("image", ""),
-                created_at=artist.get("created_at", datetime.utcnow())
-            )
-            for artist in artists
-        ]
+    def __init__(self):
+        self.artist_repo = ArtistRepository()
+        self.song_repo = SongRepository()
+        self.album_repo = AlbumRepository()
 
-    @staticmethod
-    def get_artist_by_id(artist_id: str) -> Optional[ArtistInDB]:
-        try:
-            artist = artists_collection.find_one({"_id": ObjectId(artist_id)})
-            if not artist:
-                return None
-            # Lấy danh sách bài hát của nghệ sĩ
-            songs = list(songs_collection.find({"artistId": ObjectId(artist_id)}))
+    def _build_artist_in_db(self, artist: dict, include_songs_albums: bool = False, artist_id: Optional[ObjectId] = None) -> ArtistInDB:
+        if include_songs_albums:
+            songs = self.song_repo.find_by_artist_id(artist_id)
             song_data = [
-                {
-                    "id": str(song["_id"]),
-                    "title": song.get("title", ""),
-                    "album": song.get("album", ""),
-                    "releaseYear": song.get("releaseYear", 0),
-                    "coverArt": song.get("coverArt", ""),
-                    "audioUrl": song.get("audioUrl", ""),
-                    "genre": song.get("genre", "")
-                }
+                SongData(
+                    id=str(song["_id"]),
+                    title=song.get("title", ""),
+                    album=song.get("album", None),
+                    release_year=song.get("releaseYear", 0),
+                    cover_art=song.get("coverArt", None),
+                    audio_url=song.get("audioUrl", None),
+                    genre=song.get("genre", "")
+                )
                 for song in songs
             ]
-            # Lấy danh sách album của nghệ sĩ
-            albums = list(albums_collection.find({"artistId": ObjectId(artist_id)}))
+            albums = self.album_repo.find_by_artist_id(artist_id)
             album_data = [
-                {
-                    "id": str(album["_id"]),
-                    "title": album.get("title", ""),
-                    "releaseYear": album.get("releaseYear", 0),
-                    "coverArt": album.get("coverArt", "")
-                }
+                AlbumData(
+                    id=str(album["_id"]),
+                    title=album.get("title", ""),
+                    release_year=album.get("releaseYear", 0),
+                    cover_art=album.get("coverArt", None)
+                )
                 for album in albums
             ]
-            return ArtistInDB(
-                id=str(artist["_id"]),
-                name=artist.get("name", ""),
-                bio=artist.get("bio", ""),
-                image=artist.get("image", ""),
-                songs=song_data,
-                albums=album_data,
-                created_at=artist.get("created_at", datetime.utcnow())
-            )
-        except Exception:
-            return None
+        else:
+            song_data = []
+            album_data = []
 
-    @staticmethod
-    def create_artist(artist_data: ArtistCreate) -> str:
-        new_artist = artist_data.dict(exclude_unset=True)
-        new_artist["created_at"] = datetime.utcnow()
-        result = artists_collection.insert_one(new_artist)
-        return str(result.inserted_id)
-
-    @staticmethod
-    def update_artist(artist_id: str, artist_data: ArtistUpdate) -> bool:
-        update_data = artist_data.dict(exclude_unset=True)
-        result = artists_collection.update_one(
-            {"_id": ObjectId(artist_id)},
-            {"$set": update_data}
+        return ArtistInDB(
+            id=str(artist["_id"]),
+            name=artist.get("name", ""),
+            bio=artist.get("bio", None),
+            image=artist.get("image", None),
+            genres=artist.get("genres", []),
+            followers=artist.get("followers", 0),
+            songs=song_data,
+            albums=album_data,
+            created_at=artist.get("created_at", datetime.utcnow()),
+            updated_at=artist.get("updated_at", None)
         )
-        return result.matched_count > 0
 
-    @staticmethod
-    def delete_artist(artist_id: str) -> bool:
-        result = artists_collection.delete_one({"_id": ObjectId(artist_id)})
-        if result.deleted_count > 0:
-            songs_collection.delete_many({"artistId": ObjectId(artist_id)})
-            albums_collection.delete_many({"artistId": ObjectId(artist_id)})
-            return True
-        return False
+    def get_all_artists(self, skip: int = 0, limit: Optional[int] = None, include_songs_albums: bool = False) -> List[ArtistInDB]:
+        try:
+            artists = self.artist_repo.find_all(skip=skip, limit=limit)
+            return [
+                self._build_artist_in_db(artist, include_songs_albums, artist["_id"])
+                for artist in artists
+            ]
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Không thể lấy danh sách nghệ sĩ: {str(e)}")
+
+    def get_artist_by_id(self, artist_id: str) -> Optional[ArtistInDB]:
+        try:
+            artist = self.artist_repo.find_by_id(ObjectId(artist_id))
+            if not artist:
+                return None
+            return self._build_artist_in_db(artist, include_songs_albums=True, artist_id=ObjectId(artist_id))
+        except InvalidId:
+            raise HTTPException(status_code=400, detail="ID nghệ sĩ không hợp lệ")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Không thể lấy thông tin nghệ sĩ: {str(e)}")
+
+    def create_artist(self, artist_data: ArtistCreate) -> str:
+        try:
+            new_artist = artist_data.dict(exclude_unset=True)
+            new_artist["created_at"] = datetime.utcnow()
+            new_artist["updated_at"] = datetime.utcnow()
+            new_artist["followers"] = new_artist.get("followers", 0)
+            if not new_artist.get("name"):
+                raise ValueError("Tên nghệ sĩ là bắt buộc")
+            result = self.artist_repo.insert_one(new_artist)
+            return str(result.inserted_id)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Không thể tạo nghệ sĩ: {str(e)}")
+
+    def update_artist(self, artist_id: str, artist_data: ArtistUpdate) -> bool:
+        try:
+            update_data = artist_data.dict(exclude_unset=True)
+            if not update_data:
+                raise ValueError("Không có dữ liệu cập nhật được cung cấp")
+            update_data["updated_at"] = datetime.utcnow()
+            result = self.artist_repo.update_one(ObjectId(artist_id), update_data)
+            return result.matched_count > 0
+        except InvalidId:
+            raise HTTPException(status_code=400, detail="ID nghệ sĩ không hợp lệ")
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Không thể cập nhật nghệ sĩ: {str(e)}")
+
+    def delete_artist(self, artist_id: str) -> bool:
+        try:
+            result = self.artist_repo.delete_one(ObjectId(artist_id))
+            if result.deleted_count > 0:
+                self.song_repo.delete_by_artist_id(ObjectId(artist_id))
+                self.album_repo.delete_by_artist_id(ObjectId(artist_id))
+                return True
+            return False
+        except InvalidId:
+            raise HTTPException(status_code=400, detail="ID nghệ sĩ không hợp lệ")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Không thể xóa nghệ sĩ: {str(e)}")

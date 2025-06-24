@@ -1,5 +1,5 @@
 import Link from "next/link";
-import SongList from "../songs/song-list"; // Sửa đường dẫn
+import SongList from "../songs/song-list"; 
 import { fetchSongs } from "@/lib/api";
 
 export default async function NewReleases() {
