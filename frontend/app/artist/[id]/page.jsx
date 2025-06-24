@@ -9,7 +9,7 @@ import { fetchArtistById } from "@/lib/api";
 import SongList from "@/components/songs/song-list";
 
 export default function ArtistDetailPage({ params }) {
-  const { id } = use(params);
+  const { id } = use(params); // Sử dụng React.use() để giải nén params
   const [artist, setArtist] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -54,7 +54,7 @@ export default function ArtistDetailPage({ params }) {
       <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
         <div className="relative w-64 h-64 rounded-lg overflow-hidden shadow-lg">
           <Image
-            src={artist.image || (artist.songs && artist.songs.length > 0 ? artist.songs[0]?.coverArt : "/placeholder.svg")}
+            src={artist.image || "/placeholder.svg"}
             alt={artist.name}
             fill
             priority
@@ -63,7 +63,7 @@ export default function ArtistDetailPage({ params }) {
         </div>
         <div className="flex-1 text-center md:text-left">
           <h1 className="text-4xl font-bold mb-2">{artist.name}</h1>
-          <p className="text-gray-300">{artist.bio}</p>
+          <p className="text-gray-300">{artist.bio || "No bio available"}</p>
           <button
             className="btn-primary mt-4 flex items-center gap-2"
             onClick={handlePlayAll}

@@ -1,4 +1,3 @@
-# models/artist.py
 from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Optional
@@ -7,15 +6,18 @@ from bson import ObjectId
 class ArtistBase(BaseModel):
     name: str
     bio: Optional[str] = None
+    genres: List[str] = []
+    followers: int = 0
 
 class ArtistCreate(ArtistBase):
-    pass
+    image: Optional[str] = None
 
 class ArtistUpdate(BaseModel):
     name: Optional[str] = None
     bio: Optional[str] = None
     image: Optional[str] = None
-
+    genres: Optional[List[str]] = None
+    followers: Optional[int] = None
 
 class SongData(BaseModel):
     id: str
@@ -38,6 +40,7 @@ class ArtistInDB(ArtistBase):
     songs: List[SongData] = []
     albums: List[AlbumData] = []
     created_at: datetime
+    updated_at: Optional[datetime] = None
 
     class Config:
         arbitrary_types_allowed = True

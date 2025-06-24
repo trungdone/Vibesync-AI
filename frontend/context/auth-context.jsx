@@ -1,4 +1,3 @@
-// app/context/auth-context.jsx
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
@@ -22,75 +21,87 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      verifyToken(token).finally(() => setLoading(false));
+      verifyToken(token).catch(() => setLoading(false));
     } else {
-      setIsAuthenticated(false);
       setLoading(false);
     }
   }, []);
 
   const verifyToken = async (token) => {
     try {
+      setLoading(true);
       const response = await fetch("http://localhost:8000/user/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
+      const text = await response.text();
+
       if (response.ok) {
-        const userData = await response.json();
+        const userData = JSON.parse(text);
         setUser(userData);
         setIsAuthenticated(true);
-        return userData; // Trả về userData
+        return userData;
       } else {
-        localStorage.removeItem("token");
-        setIsAuthenticated(false);
-        setUser(null);
+        throw new Error("Invalid or expired token");
       }
     } catch (err) {
-      console.error("Token verification error:", err);
-      localStorage.removeItem("token");
-      setIsAuthenticated(false);
-      setUser(null);
+      console.warn("🔒 Token verification failed:", err.message);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
   const signIn = async (email, password) => {
     try {
+      setLoading(true);
       const response = await fetch("http://localhost:8000/user/login", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ username: email, password }),
       });
       const data = await response.json();
+
       if (response.ok) {
         localStorage.setItem("token", data.access_token);
-        const userData = await verifyToken(data.access_token); // Chờ verifyToken
-        if (userData.role === "admin") {
-          router.push("/admin/dashboard");
-        } else {
-          router.push("/profile");
+        const userData = await verifyToken(data.access_token);
+        if (userData.banned) {
+          localStorage.removeItem("token");
+          throw new Error("Account is banned");
         }
+        setUser(userData);
+        setIsAuthenticated(true);
+        router.push(userData.role === "admin" ? "/admin/dashboard" : "/profile");
       } else {
         throw new Error(data.detail || "Invalid credentials");
       }
     } catch (err) {
-      throw new Error(err.message);
+      console.error("❌ Sign-in error:", err.message);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
   const signUp = async (name, email, password) => {
     try {
+      setLoading(true);
       const response = await fetch("http://localhost:8000/user/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
       });
       const data = await response.json();
+
       if (response.ok) {
         router.push("/signin");
       } else {
         throw new Error(data.detail || "Failed to create account");
       }
     } catch (err) {
-      throw new Error(err.message);
+      console.error("❌ Sign-up error:", err.message);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 

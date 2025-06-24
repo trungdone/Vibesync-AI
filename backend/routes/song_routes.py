@@ -1,42 +1,57 @@
-# songs_router.py
 from fastapi import APIRouter, HTTPException, Depends
+from models.song import SongCreate, SongUpdate, SongInDB
 from services.song_service import SongService
-from models.song import SongCreate, SongUpdate
+from database.repositories.song_repository import SongRepository
 from auth import get_current_user
+from pydantic import BaseModel
+from typing import List
 
 router = APIRouter(prefix="/songs", tags=["songs"])
 
-@router.get("")
-async def get_songs(sort: str = None, limit: int = None):
+class SongsResponse(BaseModel):
+    songs: List[SongInDB]
+    total: int
+
+def get_song_service():
+    repository = SongRepository()
+    return SongService(repository)
+
+@router.get("", response_model=SongsResponse)
+async def get_songs(sort: str = None, limit: int = None, service: SongService = Depends(get_song_service)):
     try:
-        songs = SongService.get_all_songs(sort, limit)
+        songs = service.get_all_songs(sort, limit)
         return {"songs": songs, "total": len(songs)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.get("/{id}")
-async def get_song(id: str):
-    song = SongService.get_song_by_id(id)
+@router.get("/{id}", response_model=SongInDB)
+async def get_song(id: str, service: SongService = Depends(get_song_service)):
+    song = service.get_song_by_id(id)
     if not song:
         raise HTTPException(status_code=404, detail="Song not found")
     return song
 
 @router.post("", dependencies=[Depends(get_current_user)])
-async def create_song(song_data: SongCreate):
+async def create_song(song_data: SongCreate, service: SongService = Depends(get_song_service)):
     try:
-        song_id = SongService.create_song(song_data)
+        song_id = service.create_song(song_data)
         return {"id": song_id, "message": "Song created successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid song data: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @router.put("/{id}", dependencies=[Depends(get_current_user)])
-async def update_song(id: str, song_data: SongUpdate):
-    if not SongService.update_song(id, song_data):
-        raise HTTPException(status_code=404, detail="Song not found")
-    return {"message": "Song updated successfully"}
+async def update_song(id: str, song_data: SongUpdate, service: SongService = Depends(get_song_service)):
+    try:
+        if not service.update_song(id, song_data):
+            raise HTTPException(status_code=404, detail="Song not found")
+        return {"message": "Song updated successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.delete("/{id}", dependencies=[Depends(get_current_user)])
-async def delete_song(id: str):
-    if not SongService.delete_song(id):
+async def delete_song(id: str, service: SongService = Depends(get_song_service)):
+    if not service.delete_song(id):
         raise HTTPException(status_code=404, detail="Song not found")
     return {"message": "Song deleted successfully"}

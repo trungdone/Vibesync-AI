@@ -20,6 +20,7 @@ class UserInDB(UserBase):
     hashed_password: str
     created_at: datetime
     avatar: Optional[str] = None
+    banned: bool = False
 
     class Config:
         arbitrary_types_allowed = True
