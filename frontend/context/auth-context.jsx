@@ -1,4 +1,3 @@
-// app/context/auth-context.jsx
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
@@ -25,6 +24,7 @@ export function AuthProvider({ children }) {
       verifyToken(token).finally(() => setLoading(false));
     } else {
       setIsAuthenticated(false);
+      setUser(null);
       setLoading(false);
     }
   }, []);
@@ -34,22 +34,32 @@ export function AuthProvider({ children }) {
       const response = await fetch("http://localhost:8000/user/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
         setIsAuthenticated(true);
-        return userData; // Trả về userData
+
+        // ✅ Lưu toàn bộ user và user_id vào localStorage
+        localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem("user_id", userData.id || userData._id || "");
+
+        return userData;
       } else {
-        localStorage.removeItem("token");
-        setIsAuthenticated(false);
-        setUser(null);
+        clearAuthStorage();
       }
     } catch (err) {
       console.error("Token verification error:", err);
-      localStorage.removeItem("token");
-      setIsAuthenticated(false);
-      setUser(null);
+      clearAuthStorage();
     }
+  };
+
+  const clearAuthStorage = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("user_id");
+    setIsAuthenticated(false);
+    setUser(null);
   };
 
   const signIn = async (email, password) => {
@@ -59,11 +69,14 @@ export function AuthProvider({ children }) {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ username: email, password }),
       });
+
       const data = await response.json();
+
       if (response.ok) {
         localStorage.setItem("token", data.access_token);
-        const userData = await verifyToken(data.access_token); // Chờ verifyToken
-        if (userData.role === "admin") {
+
+        const userData = await verifyToken(data.access_token);
+        if (userData?.role === "admin") {
           router.push("/admin/dashboard");
         } else {
           router.push("/profile");
@@ -72,7 +85,7 @@ export function AuthProvider({ children }) {
         throw new Error(data.detail || "Invalid credentials");
       }
     } catch (err) {
-      throw new Error(err.message);
+      throw new Error(err.message || "Sign-in failed");
     }
   };
 
@@ -83,6 +96,7 @@ export function AuthProvider({ children }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
       });
+
       const data = await response.json();
       if (response.ok) {
         router.push("/signin");
@@ -95,9 +109,7 @@ export function AuthProvider({ children }) {
   };
 
   const signOut = () => {
-    localStorage.removeItem("token");
-    setUser(null);
-    setIsAuthenticated(false);
+    clearAuthStorage();
     router.push("/signin");
   };
 

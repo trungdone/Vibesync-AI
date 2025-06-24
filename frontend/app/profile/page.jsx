@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -7,6 +7,7 @@ import SongList from "@/components/songs/song-list";
 import PlaylistGrid from "@/components/playlist/playlist-grid";
 import { fetchPlaylists, fetchSongs } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import ChatBox from "@/components/chatbot/ChatBox";
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
@@ -14,10 +15,24 @@ export default function ProfilePage() {
   const [likedSongs, setLikedSongs] = useState([]);
   const [historySongs, setHistorySongs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const router = useRouter();
 
+  // ✅ Load trạng thái chat từ localStorage
   useEffect(() => {
-    const token = localStorage.getItem("token"); // ✅ Lấy token trong useEffect
+    const savedState = localStorage.getItem("isChatOpen");
+    if (savedState === "true") {
+      setIsChatOpen(true);
+    }
+  }, []);
+
+  // ✅ Ghi lại mỗi lần thay đổi isChatOpen
+  useEffect(() => {
+    localStorage.setItem("isChatOpen", isChatOpen.toString());
+  }, [isChatOpen]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
 
     if (!token) {
       router.push("/signin");
@@ -33,22 +48,16 @@ export default function ProfilePage() {
         });
         const userData = await userResponse.json();
 
-        const detail = Array.isArray(userData.detail)
-          ? userData.detail.map((d) => d.msg).join(", ")
-          : userData.detail || "Unauthorized";
+        if (!userResponse.ok) throw new Error(userData.detail || "Unauthorized");
 
-        if (!userResponse.ok) throw new Error(detail);
         setUser(userData);
 
         const playlistData = await fetchPlaylists();
-        setPlaylists(playlistData.slice(0, 8) || []);
+        setPlaylists(playlistData.slice(0, 8));
 
         const songData = await fetchSongs();
-        // Kiểm tra và xử lý songData
         const songs = Array.isArray(songData) ? songData : songData?.songs || [];
-        if (songs.length === 0) {
-          console.warn("No songs data available.");
-        }
+
         setLikedSongs(songs.slice(0, 10));
         setHistorySongs(songs.slice(10, 20));
       } catch (err) {
@@ -68,6 +77,7 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6 pb-24">
+      {/* Profile UI */}
       <div className="flex items-center gap-6">
         <div className="relative w-32 h-32 rounded-full overflow-hidden">
           <Image
@@ -80,23 +90,10 @@ export default function ProfilePage() {
         <div>
           <h1 className="text-3xl font-bold">{user?.name || "User Name"}</h1>
           <p className="text-gray-400">{user?.email || "user@example.com"}</p>
-          <div className="flex gap-4 mt-2">
-            <div>
-              <span className="text-gray-400">Playlists</span>
-              <p className="font-semibold">{playlists.length}</p>
-            </div>
-            <div>
-              <span className="text-gray-400">Followers</span>
-              <p className="font-semibold">245</p>
-            </div>
-            <div>
-              <span className="text-gray-400">Following</span>
-              <p className="font-semibold">118</p>
-            </div>
-          </div>
         </div>
       </div>
 
+      {/* Tabs */}
       <Tabs defaultValue="playlists">
         <TabsList className="bg-white/5">
           <TabsTrigger value="playlists">Playlists</TabsTrigger>
@@ -113,6 +110,19 @@ export default function ProfilePage() {
           <SongList songs={historySongs} />
         </TabsContent>
       </Tabs>
+
+      {/* Nút mở chat */}
+      <button
+        onClick={() => setIsChatOpen(true)}
+        className="fixed bottom-24 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 flex items-center justify-center z-50"
+      >
+        💬
+      </button>
+
+      {/* ChatBox */}
+      {isChatOpen && (
+        <ChatBox isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      )}
     </div>
   );
 }
