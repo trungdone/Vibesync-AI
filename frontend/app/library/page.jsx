@@ -5,8 +5,11 @@ import { useRouter } from "next/navigation";
 import SongList from "@/components/songs/song-list";
 import PlaylistGrid from "@/components/playlist/playlist-grid";
 import { getAllPlaylists } from "@/lib/api/playlists";
+import { useAuth } from "@/context/auth-context"; // add this
 
 export default function LibraryPage() {
+    const { user } = useAuth(); // 👈 get user info
+
   const [playlists, setPlaylists] = useState([]);
   const [likedSongs, setLikedSongs] = useState([]);
   const [historySongs, setHistorySongs] = useState([]);
@@ -23,7 +26,7 @@ export default function LibraryPage() {
           setLoading(true);
 
           // Gọi playlist
-          const playlistData = await getAllPlaylists();
+          const playlistData = await getAllPlaylists(user?.id);
           setPlaylists(playlistData || []);
 
           // Gọi song
@@ -62,7 +65,7 @@ export default function LibraryPage() {
 
       <div>
         <h2 className="text-xl font-semibold mb-2">Liked Songs</h2>
-        <SongList songs={likedSongs} />
+        {/* <SongList songs={likedSongs} /> */}
       </div>
 
       <div>

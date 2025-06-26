@@ -3,6 +3,18 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { createPlaylist } from "@/lib/api/playlists";
+import { useAuth } from "@/context/auth-context"; // ✅ Bổ sung dòng này
+
+
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  role?: string;
+  avatar?: string;
+  banned?: boolean;
+};
+
 
 interface CustomCreatePlaylistModalProps {
   open: boolean;
@@ -15,6 +27,8 @@ export default function CustomCreatePlaylistModal({
   onClose,
   onPlaylistCreated,
 }: CustomCreatePlaylistModalProps) {
+  const { user } = useAuth() as { user: User | null };
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(true);
@@ -35,6 +49,7 @@ export default function CustomCreatePlaylistModal({
         title,
         description,
         isPublic,
+        creator: user?.id,
       });
       onPlaylistCreated?.(newPlaylist);
       setTitle("");

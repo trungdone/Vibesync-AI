@@ -18,6 +18,15 @@ export async function fetchSongsByIds(songIds) {
   return await Promise.all(promises);
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
+
+export async function getSongById(id) {
+  const res = await fetch(`${API_BASE}/songs/${id}`, { cache: "no-store" });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+
 export async function createSong(data) {
   const endpoint = "/api/songs";
   return await apiFetch(endpoint, {

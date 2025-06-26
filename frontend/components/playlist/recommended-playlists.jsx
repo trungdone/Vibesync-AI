@@ -5,7 +5,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/
 
 export default async function RecommendedPlaylists() {
   // Fetch playlists from API
-const playlistsData = await getAllPlaylists() || [];
+  const playlistsData = (await getAllPlaylists() || []).filter(p => p.isPublic);
   // Filter first 6 playlists
   const recommendedPlaylists = playlistsData.slice(0, 6)
 

@@ -13,13 +13,17 @@ from services.playlist_service import PlaylistService
 router = APIRouter()
 playlist_service = PlaylistService()
 
+from typing import Optional
+
 @router.get("/playlists")
-async def get_playlists():
-    playlists = list(playlists_collection.find())
+async def get_playlists(creator: Optional[str] = None):
+    query = {"creator": creator} if creator else {}
+    playlists = list(playlists_collection.find(query))
     for playlist in playlists:
         playlist["id"] = str(playlist["_id"])
         del playlist["_id"]
     return playlists
+
 
 @router.get("/playlists/{id}")
 async def get_playlist(id: str):
