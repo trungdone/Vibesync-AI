@@ -6,28 +6,60 @@ import Link from "next/link";
 import { useMusic } from "@/context/music-context";
 import {
   Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX,
-  Repeat, Shuffle, Heart
+  Repeat, Shuffle, Heart, MoreHorizontal, X
 } from "lucide-react";
 import { formatDuration } from "@/lib/utils";
 
 export default function Player() {
   const {
-    currentSong,
-    isPlaying,
-    togglePlayPause,
-    nextSong,
-    prevSong,
-    audioRef,
+  currentSong,
+  isPlaying,
+  togglePlayPause,
+  nextSong,
+  prevSong,
+  audioRef,
+  isShuffling,
+  toggleShuffle,
+  repeatMode,
+  toggleRepeat,
   } = useMusic();
 
   const [volume, setVolume] = useState(50);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
-  const [isShuffling, setIsShuffling] = useState(false);
-  const [repeatMode, setRepeatMode] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const progressBarRef = useRef(null);
+  const [showMore, setShowMore] = useState(false);
+  const [optionsOpenId, setOptionsOpenId] = useState(null);
+  const popupRef = useRef(null);
+  const toggleLike = () => setIsLiked(!isLiked);
+
+  useEffect(() => {
+  console.log("🔁 Audio src updated:", currentSong?.audioUrl);
+}, [currentSong]);
+
+  useEffect(() => {
+  const handleClickOutside = (event) => {
+    // Nếu popup đang hiển thị và người dùng click ra ngoài popup
+    if (showMore && popupRef.current && !popupRef.current.contains(event.target)) {
+      setShowMore(false);
+    }
+  };
+
+  const handleScroll = () => {
+    setShowMore(false);
+    setOptionsOpenId(null);
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+  window.addEventListener("scroll", handleScroll, true);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+    window.removeEventListener("scroll", handleScroll, true);
+  };
+}, []);
 
   useEffect(() => {
     if (currentSong && audioRef.current) {
@@ -71,6 +103,9 @@ const handleProgressChange = (e) => {
 
   if (isFinite(newTime)) {
     audio.currentTime = newTime;
+      if (newTime < audio.duration && !isPlaying) {
+    audio.play().then(() => setIsPlaying(true)).catch((err) => console.error("Play error after seek:", err));
+  }
   }
 };
 
@@ -94,10 +129,6 @@ const handleProgressChange = (e) => {
     }
   };
 
-  const toggleRepeat = () => setRepeatMode((prev) => (prev + 1) % 3);
-  const toggleShuffle = () => setIsShuffling(!isShuffling);
-  const toggleLike = () => setIsLiked(!isLiked);
-
   if (!currentSong) {
     return (
       <div className="h-20 bg-black/50 backdrop-blur-md border-t border-white/10 px-4 flex items-center justify-center text-gray-400">
@@ -108,15 +139,22 @@ const handleProgressChange = (e) => {
 
   return (
     <div className="h-20 bg-black/50 backdrop-blur-md border-t border-white/10 px-4 flex items-center">
-      <audio
-        ref={audioRef}
-        src={currentSong.audioUrl}
-        type="audio/mpeg"
-        onTimeUpdate={handleTimeUpdate}
-        onEnded={nextSong}
-        loop={repeatMode === 2}
-        autoPlay
-      />
+<audio
+  ref={audioRef}
+  src={currentSong.audioUrl}
+  type="audio/mpeg"
+  onTimeUpdate={handleTimeUpdate}
+  onEnded={() => {
+    if (repeatMode === 1) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play(); // 🛠 Lặp lại bài
+    } else {
+      nextSong(); // 🛠 Gọi nextSong nếu không phải repeat one
+    }
+  }}
+  autoPlay
+/>
+
 
       <div className="flex items-center gap-4 w-1/4">
         <div className="relative w-14 h-14 rounded overflow-hidden flex-shrink-0">
@@ -127,6 +165,7 @@ const handleProgressChange = (e) => {
             className="object-cover"
           />
         </div>
+
         <div className="truncate">
           <Link href={`/song/${currentSong.id}`} className="font-medium hover:underline truncate block">
             {currentSong.title}
@@ -138,12 +177,20 @@ const handleProgressChange = (e) => {
             {currentSong.artist}
           </Link>
         </div>
+        
         <button
           className={`text-gray-400 hover:text-white ${isLiked ? "text-purple-500" : ""}`}
           onClick={toggleLike}
         >
           <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
         </button>
+        
+<button
+  onClick={() => setShowMore(!showMore)}
+  className="text-gray-400 hover:text-white ml-2"
+>
+  <MoreHorizontal size={20} />
+</button>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center gap-2">
@@ -163,6 +210,7 @@ const handleProgressChange = (e) => {
           >
             {isPlaying ? <Pause size={18} /> : <Play size={18} className="ml-0.5" />}
           </button>
+
           <button className="text-gray-400 hover:text-white" onClick={nextSong}>
             <SkipForward size={22} />
           </button>
@@ -203,6 +251,52 @@ const handleProgressChange = (e) => {
           onChange={handleVolumeChange}
           className="w-24 h-1 bg-white/20 rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
         />
+{showMore && (
+  <div 
+  ref={popupRef}
+  className="fixed bottom-24 left-4 sm:left-20 bg-[#181818] text-white w-72 rounded-xl shadow-lg z-50 p-4">
+    {/* Header with image + song info */}
+    <div className="flex gap-3 items-start">
+      <div className="w-14 h-14 relative rounded overflow-hidden flex-shrink-0">
+        <Image
+          src={currentSong.coverArt || "/placeholder.svg"}
+          alt={currentSong.title}
+          fill
+          className="object-cover"
+        />
+      </div>
+      <div className="flex-1 group relative">
+        <div className="font-semibold text-base truncate">
+          {currentSong.title}
+        </div>
+        <div className="text-sm text-gray-400">{currentSong.artist}</div>
+
+        {/* Tooltip on hover */}
+        <div className="absolute bottom-full left-0 mb-2 w-max bg-black/90 text-xs text-white px-3 py-2 rounded hidden group-hover:block z-50 whitespace-nowrap">
+          <div><strong>Album:</strong> {currentSong.album || "Unknown"}</div>
+          <div><strong>Genre:</strong> {Array.isArray(currentSong.genre) ? currentSong.genre.join(", ") : currentSong.genre || "Unknown"}</div>
+        </div>
+      </div>
+<button
+  onClick={() => {
+    setShowMore(false);
+    setOptionsOpenId(null);
+  }}
+  className="text-gray-400 hover:text-white"
+>
+  <X size={16} />
+</button>
+    </div>
+    {/* Action Options */}
+    <ul className="text-sm mt-4 space-y-2 border-t border-white/10 pt-3">
+      <li className="hover:bg-white/10 rounded p-2 cursor-pointer">Add to Playlist</li>
+      <li className="hover:bg-white/10 rounded p-2 cursor-pointer">Lyrics</li>
+      <li className="hover:bg-white/10 rounded p-2 cursor-pointer">Play next</li>
+      <li className="hover:bg-white/10 rounded p-2 cursor-pointer">Block</li>
+      <li className="hover:bg-white/10 rounded p-2 cursor-pointer">Copy Link</li>
+    </ul>
+  </div>
+)}
       </div>
     </div>
   );
