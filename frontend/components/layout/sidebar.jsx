@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -8,24 +8,44 @@ import {
 } from "lucide-react";
 import CustomCreatePlaylistModal from "@/components/playlist/CustomCreatePlaylistModal";
 import { getAllPlaylists } from "@/lib/api/playlists";
-
+import { useAuth } from "@/context/auth-context"; // nhớ phải import nếu chưa có
+import { userAgent } from "next/server";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { user  } = useAuth(); // ✅ gọi trong hàm Sidebar
   const [playlists, setPlaylists] = useState([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
+  const handleSubmit = async () => {
+  const creatorId = user?.id ?? ""; // ✅ Bây giờ an toàn
+
+  await createPlaylist({
+    title,
+    description,
+    isPublic,
+    creator: creatorId,
+  });
+};
   useEffect(() => {
+    if (!user?.id) return;
+
     async function loadPlaylists() {
       try {
-        const playlistsData = await getAllPlaylists();
+        const playlistsData = await getAllPlaylists(user.id); // ✅ chỉ lấy playlist của user
         setPlaylists(playlistsData || []);
+
+        
       } catch (e) {
         console.error("Failed to load playlists:", e);
       }
     }
+
     loadPlaylists();
-  }, []);
+  }, [user]);
+
+
+  
 
   const isActive = (path) => pathname === path;
 
@@ -80,13 +100,16 @@ export default function Sidebar() {
             onClose={() => setIsCreateOpen(false)}
             onPlaylistCreated={async () => {
               try {
-                const latest = await getAllPlaylists();
+                if (!user?.id) return; // ✅ kiểm tra trước
+                const latest = await getAllPlaylists(user.id);
                 setPlaylists(latest || []);
               } catch (e) {
                 console.error("Failed to refresh playlists:", e);
               }
             }}
+
           />
+
 
 
           {/* Danh sách playlist */}

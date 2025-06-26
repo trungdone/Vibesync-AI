@@ -11,6 +11,8 @@ export async function createPlaylist(payload) {
       ...payload,
       coverArt: payload.coverArt || "https://via.placeholder.com/640x640.png?text=Playlist+Cover",
       songIds: payload.songIds || [],
+      creator: payload.creator, // ✅ đảm bảo gửi đúng
+
     }),
   });
 
@@ -19,12 +21,22 @@ export async function createPlaylist(payload) {
   return data;
 }
 
-// ✅ Lấy tất cả playlist
-export async function getAllPlaylists() {
-  const res = await fetch(`${API_BASE}/playlists`, { cache: "no-store" });
+
+
+// ✅ Lấy tất cả playlist (có thể lọc theo creatorId)
+export async function getAllPlaylists(creatorId) {
+  const query = creatorId ? `?creator=${creatorId}` : "";
+  const res = await fetch(`${API_BASE}/playlists${query}`, {
+    cache: "no-store",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`, // if your API requires it
+    },
+  });
+
   if (!res.ok) throw new Error("Failed to fetch playlists");
   return res.json();
 }
+
 
 // ✅ Lấy 1 playlist theo ID
 export async function getPlaylistById(id) {

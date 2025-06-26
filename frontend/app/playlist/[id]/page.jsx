@@ -1,51 +1,42 @@
 import { notFound } from "next/navigation";
 import SongList from "@/components/songs/song-list";
+import { getPlaylistById } from "@/lib/api/playlists";
+import { getSongById } from "@/lib/api/songs"; // nếu bạn có function này
 
+// ⛳️ Metadata hiển thị title động trên trình duyệt
 export async function generateMetadata({ params }) {
-  const id = typeof params?.id === "string" ? params.id : Array.isArray(params?.id) ? params.id[0] : null;
+  const id = Array.isArray(params?.id) ? params.id[0] : params.id;
 
   if (!id) return { title: "Playlist" };
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/playlists/${id}`);
-  const playlist = await res.json();
-
-  return {
-    title: `Playlist - ${playlist.title || "Untitled"}`,
-  };
-}
-
-
-
-async function fetchPlaylist(id) {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/playlists/${id}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    return res.json();
-  } catch (e) {
-    return null;
+    const playlist = await getPlaylistById(id);
+    return { title: playlist?.title || "Playlist" };
+  } catch {
+    return { title: "Playlist not found" };
   }
 }
 
 export default async function PlaylistPage({ params }) {
-  if (!params || !params.id) return notFound();
+  const id = Array.isArray(params?.id) ? params.id[0] : params.id;
 
-  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  if (!id || typeof id !== "string") return notFound();
 
-  const playlist = await fetchPlaylist(id);
+  const playlist = await getPlaylistById(id);
   if (!playlist) return notFound();
 
-  const songs = playlist.songIds || [];
+  // 🧠 Fetch từng bài hát nếu bạn lưu dưới dạng songIds = [id, id...]
+  let songDetails = [];
+  try {
+    if (playlist.songIds && Array.isArray(playlist.songIds)) {
+      const promises = playlist.songIds.map((songId) => getSongById(songId));
+      songDetails = await Promise.all(promises);
+    }
+  } catch (err) {
+    console.error("Failed to fetch songs:", err);
+  }
 
-  const songDetails = await Promise.all(
-    songs.map(async (songId) => {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/songs/${songId}`);
-      return res.ok ? res.json() : null;
-    })
-  );
-
-  const validSongs = songDetails.filter(Boolean);
+  const validSongs = songDetails.filter(Boolean); // loại bỏ null
 
   return (
     <div className="p-6 space-y-6">
