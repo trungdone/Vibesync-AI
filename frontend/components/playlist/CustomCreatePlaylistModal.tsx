@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { createPlaylist } from "@/lib/api/playlists";
 import { createPortal } from "react-dom";
+import { createPlaylist } from "@/lib/api/playlists";
 
 interface CustomCreatePlaylistModalProps {
   open: boolean;
@@ -16,8 +16,8 @@ export default function CustomCreatePlaylistModal({
   onPlaylistCreated,
 }: CustomCreatePlaylistModalProps) {
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(true);
-  const [isShuffle, setIsShuffle] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,9 +31,14 @@ export default function CustomCreatePlaylistModal({
 
     try {
       setLoading(true);
-      const newPlaylist = await createPlaylist({ title, isPublic, isShuffle });
+      const newPlaylist = await createPlaylist({
+        title,
+        description,
+        isPublic,
+      });
       onPlaylistCreated?.(newPlaylist);
       setTitle("");
+      setDescription("");
       setError(null);
       onClose();
     } catch (err) {
@@ -46,7 +51,7 @@ export default function CustomCreatePlaylistModal({
 
   return createPortal(
     <div className="fixed inset-0 z-[10000] bg-black/60 flex items-center justify-center">
-      <div className="relative bg-zinc-900 text-white p-6 rounded-2xl w-full max-w-md shadow-xl">
+      <div className="relative bg-zinc-900 text-white p-6 rounded-2xl w-full max-w-md shadow-xl space-y-4">
         {/* Close Button */}
         <button
           className="absolute top-3 right-3 text-gray-400 hover:text-white text-lg font-bold"
@@ -55,70 +60,68 @@ export default function CustomCreatePlaylistModal({
         >
           ✕
         </button>
-        <h2 className="text-2xl font-bold mb-6">Create New Playlist</h2>
 
-        {/* Playlist Title Input */}
-        <input
-          className="w-full px-4 py-2 mb-4 rounded-md bg-zinc-800 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600"
-          placeholder="Enter playlist name"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
+        <h2 className="text-2xl font-bold">Create new playlist</h2>
 
-        {/* Toggle Controls */}
-        <div className="space-y-4 text-sm">
-          <Toggle
-            label="Public"
-            checked={isPublic}
-            onChange={() => setIsPublic(!isPublic)}
-          />
-          <Toggle
-            label="Shuffle"
-            checked={isShuffle}
-            onChange={() => setIsShuffle(!isShuffle)}
+        {/* Name input */}
+        <div>
+          <label className="block text-sm mb-1">Playlist name</label>
+          <input
+            className="w-full px-4 py-2 rounded-md bg-zinc-800 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600"
+            placeholder="Enter playlist name"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
           />
         </div>
 
-        {/* Error Message */}
-        {error && <p className="text-red-500 text-sm mt-3">{error}</p>}
+        {/* Description input */}
+        <div>
+          <label className="block text-sm mb-1">Description</label>
+          <textarea
+            rows={2}
+            className="w-full px-4 py-2 rounded-md bg-zinc-800 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600 resize-none"
+            placeholder="Add a note for this playlist"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
 
-        {/* Submit Button */}
+        {/* IsPublic toggle */}
+        <div>
+          <label className="block text-sm mb-1">Public?</label>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="isPublic"
+                checked={isPublic === true}
+                onChange={() => setIsPublic(true)}
+              />
+              Yes
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="isPublic"
+                checked={isPublic === false}
+                onChange={() => setIsPublic(false)}
+              />
+              No
+            </label>
+          </div>
+        </div>
+
+        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+
         <button
           onClick={handleSubmit}
           disabled={loading || !title.trim()}
-          className="mt-6 w-full py-2 bg-purple-600 hover:bg-purple-700 rounded-md font-semibold transition-all duration-200 disabled:opacity-50"
+          className="w-full mt-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-md font-semibold transition-all duration-200 disabled:opacity-50"
         >
-          {loading ? "Creating..." : "CREATE"}
+          {loading ? "Creating..." : "Create Playlist"}
         </button>
       </div>
     </div>,
     document.body
-  );
-}
-
-// Toggle component for reuse
-function Toggle({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: () => void;
-}) {
-  return (
-    <div className="flex justify-between items-center">
-      <span>{label}</span>
-      <label className="relative inline-flex items-center cursor-pointer">
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={onChange}
-          className="sr-only peer"
-        />
-        <div className="w-11 h-6 bg-gray-600 rounded-full peer-checked:bg-purple-600 transition-colors duration-300" />
-        <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 peer-checked:translate-x-5" />
-      </label>
-    </div>
   );
 }

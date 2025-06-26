@@ -1,28 +1,65 @@
-import { apiFetch } from "../utils";
+// lib/api/playlists.js
 
-export async function fetchPlaylists() {
-  const endpoint = "/api/playlists";
-  return await apiFetch(endpoint, { fallbackOnError: [] });
-}
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
 
-export async function fetchPlaylistById(id) {
-  const endpoint = `/api/playlists/${id}`;
-  return await apiFetch(endpoint);
-}
-
-export async function createPlaylist(data) {
-  const response = await fetch("/api/playlists", {
+// ✅ Tạo playlist
+export async function createPlaylist(payload) {
+  const res = await fetch(`${API_BASE}/playlists`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      ...payload,
+      coverArt: payload.coverArt || "https://via.placeholder.com/640x640.png?text=Playlist+Cover",
+      songIds: payload.songIds || [],
+    }),
   });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.detail || "Failed to create playlist");
-  }
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || "Failed to create playlist");
+  return data;
+}
 
-  return await response.json(); // Trả về newPlaylist với id
+// ✅ Lấy tất cả playlist
+export async function getAllPlaylists() {
+  const res = await fetch(`${API_BASE}/playlists`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to fetch playlists");
+  return res.json();
+}
+
+// ✅ Lấy 1 playlist theo ID
+export async function getPlaylistById(id) {
+  const res = await fetch(`${API_BASE}/playlists/${id}`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to fetch playlist");
+  return res.json();
+}
+
+// ✅ Thêm bài hát vào playlist
+export async function addSongToPlaylist(playlistId, songId) {
+  const res = await fetch(`${API_BASE}/playlists/${playlistId}/add-song`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ songId }),
+  });
+  if (!res.ok) throw new Error("Failed to add song");
+  return res.json();
+}
+
+// ✅ Xoá bài hát khỏi playlist
+export async function removeSongFromPlaylist(playlistId, songId) {
+  const res = await fetch(`${API_BASE}/playlists/${playlistId}/remove-song`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ songId }),
+  });
+  if (!res.ok) throw new Error("Failed to remove song");
+  return res.json();
+}
+
+// ✅ Xoá cả playlist
+export async function deletePlaylist(playlistId) {
+  const res = await fetch(`${API_BASE}/playlists/${playlistId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Failed to delete playlist");
+  return res.json();
 }

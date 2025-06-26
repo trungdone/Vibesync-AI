@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import SongList from "@/components/songs/song-list";
 import PlaylistGrid from "@/components/playlist/playlist-grid";
-import { fetchPlaylists, fetchSongs } from "@/lib/api";
+import { getAllPlaylists } from "@/lib/api/playlists";
 
 export default function LibraryPage() {
   const [playlists, setPlaylists] = useState([]);
@@ -23,11 +23,11 @@ export default function LibraryPage() {
           setLoading(true);
 
           // Gọi playlist
-          const playlistData = await fetchPlaylists();
+          const playlistData = await getAllPlaylists();
           setPlaylists(playlistData || []);
 
           // Gọi song
-          const songData = await fetchSongs();
+          const songData = await getAllPlaylists();
           // Kiểm tra và xử lý songData
           const songs = Array.isArray(songData) ? songData : songData?.songs || [];
           if (songs.length === 0) {
