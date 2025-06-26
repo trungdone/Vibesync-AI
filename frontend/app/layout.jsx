@@ -18,6 +18,8 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <ClientLayout>{children}</ClientLayout>
         </AuthProvider>
+        <div id="modal-root" className="fixed inset-0 z-[99999] pointer-events-none" />
+
       </body>
     </html>
   )

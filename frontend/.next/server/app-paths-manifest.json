@@ -1,10 +1,8 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
-  "/signin/page": "app/signin/page.js",
-  "/library/page": "app/library/page.js",
   "/page": "app/page.js",
-  "/playlist/[id]/page": "app/playlist/[id]/page.js",
   "/profile/page": "app/profile/page.js",
-  "/admin/dashboard/page": "app/admin/dashboard/page.js",
-  "/admin/artists/page": "app/admin/artists/page.js"
+  "/playlist/[id]/page": "app/playlist/[id]/page.js",
+  "/signin/page": "app/signin/page.js",
+  "/song/[id]/page": "app/song/[id]/page.js"
 }

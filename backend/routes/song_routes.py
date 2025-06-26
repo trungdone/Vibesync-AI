@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from models.song import SongCreate, SongUpdate, SongInDB
 from services.song_service import SongService
 from database.repositories.song_repository import SongRepository
+from database.repositories.artist_repository import ArtistRepository
 from auth import get_current_user
 from pydantic import BaseModel
 from typing import List
@@ -13,8 +14,7 @@ class SongsResponse(BaseModel):
     total: int
 
 def get_song_service():
-    repository = SongRepository()
-    return SongService(repository)
+    return SongService(SongRepository(), ArtistRepository())
 
 @router.get("", response_model=SongsResponse)
 async def get_songs(sort: str = None, limit: int = None, service: SongService = Depends(get_song_service)):

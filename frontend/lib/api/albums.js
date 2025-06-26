@@ -1,16 +1,19 @@
-// lib/api/albums.js
 import { apiFetch } from "../utils";
 
 export async function fetchAlbums(params = {}) {
   const query = new URLSearchParams(params).toString();
   const endpoint = `/api/albums${query ? `?${query}` : ""}`;
-  return await apiFetch(endpoint, { fallbackOnError: [] });
+  const data = await apiFetch(endpoint, { fallbackOnError: { albums: [] } });
+  return data.albums || [];
 }
 
 export async function fetchAlbumById(id) {
   const endpoint = `/api/albums/${id}`;
-  return await apiFetch(endpoint);
+  const data = await apiFetch(endpoint, { fallbackOnError: null });
+  if (!data) throw new Error("Album not found");
+  return data;
 }
+
 
 export async function createAlbum(data) {
   const endpoint = "/api/albums";

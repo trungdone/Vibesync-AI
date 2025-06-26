@@ -15,17 +15,17 @@ class ArtistService:
         self.album_repo = AlbumRepository()
 
     def _build_artist_in_db(self, artist: dict, include_songs_albums: bool = False, artist_id: Optional[ObjectId] = None) -> ArtistInDB:
-        if include_songs_albums:
+        if include_songs_albums and artist_id:
             songs = self.song_repo.find_by_artist_id(artist_id)
             song_data = [
                 SongData(
                     id=str(song["_id"]),
                     title=song.get("title", ""),
                     album=song.get("album", None),
-                    release_year=song.get("releaseYear", 0),
-                    cover_art=song.get("coverArt", None),
-                    audio_url=song.get("audioUrl", None),
-                    genre=song.get("genre", "")
+                    releaseYear=song.get("releaseYear", 0),
+                    coverArt=song.get("coverArt", None),
+                    audioUrl=song.get("audioUrl", None),
+                    genre=song.get("genre", [])[0] if isinstance(song.get("genre", []), list) and song.get("genre", []) else ""
                 )
                 for song in songs
             ]
@@ -34,8 +34,8 @@ class ArtistService:
                 AlbumData(
                     id=str(album["_id"]),
                     title=album.get("title", ""),
-                    release_year=album.get("releaseYear", 0),
-                    cover_art=album.get("coverArt", None)
+                    releaseYear=album.get("releaseYear", 0),
+                    coverArt=album.get("coverArt", None)
                 )
                 for album in albums
             ]

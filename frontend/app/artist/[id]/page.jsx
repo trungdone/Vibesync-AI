@@ -5,11 +5,11 @@ import { use, useEffect, useState } from "react";
 import Image from "next/image";
 import { useMusic } from "@/context/music-context";
 import { Play } from "lucide-react";
-import { fetchArtistById } from "@/lib/api";
+import { fetchArtistById } from "@/lib/api/artists";
 import SongList from "@/components/songs/song-list";
 
 export default function ArtistDetailPage({ params }) {
-  const { id } = use(params); // Sử dụng React.use() để giải nén params
+  const { id } = use(params);
   const [artist, setArtist] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,6 +20,7 @@ export default function ArtistDetailPage({ params }) {
       try {
         setLoading(true);
         const artistData = await fetchArtistById(id);
+        console.log("Artist data:", artistData); // Thêm log để kiểm tra
         if (!artistData) throw new Error("Artist not found");
         setArtist(artistData);
       } catch (err) {

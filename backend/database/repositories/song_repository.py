@@ -2,6 +2,7 @@ from database.db import songs_collection
 from bson import ObjectId
 from bson.errors import InvalidId
 from typing import List, Optional, Dict
+from datetime import datetime
 
 class SongRepository:
     @staticmethod
@@ -16,7 +17,7 @@ class SongRepository:
         try:
             cursor = songs_collection.find(query or {})
             if sort:
-                cursor = cursor.sort(sort, 1)  # Sắp xếp tăng dần
+                cursor = cursor.sort(sort, 1)
             if skip is not None:
                 cursor = cursor.skip(skip)
             if limit:
@@ -33,12 +34,28 @@ class SongRepository:
         return songs_collection.find_one({"_id": SongRepository._validate_object_id(song_id)})
 
     @staticmethod
+    def find_by_artist_id(artist_id: ObjectId) -> List[Dict]:
+        try:
+            # Thử tìm với cả chuỗi và ObjectId
+            songs = songs_collection.find({
+                "$or": [
+                    {"artistId": str(artist_id)},
+                    {"artistId": artist_id}
+                ]
+            })
+            return list(songs)
+        except Exception as e:
+            print(f"Error in find_by_artist_id: {str(e)}")
+            raise ValueError(f"Failed to query songs by artist_id: {str(e)}")
+
+    @staticmethod
     def insert(song_data: Dict) -> str:
         result = songs_collection.insert_one(song_data)
         return str(result.inserted_id)
 
     @staticmethod
     def update(song_id: str, update_data: Dict) -> bool:
+        update_data["updated_at"] = datetime.utcnow()
         result = songs_collection.update_one(
             {"_id": SongRepository._validate_object_id(song_id)},
             {"$set": update_data}
@@ -48,4 +65,14 @@ class SongRepository:
     @staticmethod
     def delete(song_id: str) -> bool:
         result = songs_collection.delete_one({"_id": SongRepository._validate_object_id(song_id)})
+        return result.deleted_count > 0
+
+    @staticmethod
+    def delete_by_artist_id(artist_id: ObjectId) -> bool:
+        result = songs_collection.delete_many({
+            "$or": [
+                {"artistId": str(artist_id)},
+                {"artistId": artist_id}
+            ]
+        })
         return result.deleted_count > 0

@@ -1,80 +1,81 @@
-# services/album_service.py
-from database.db import albums_collection, artists_collection, songs_collection
 from bson import ObjectId
+from bson.errors import InvalidId
 from datetime import datetime
 from typing import List, Optional
+from fastapi import HTTPException
 from models.album import AlbumCreate, AlbumUpdate, AlbumInDB
+from database.repositories.album_repository import AlbumRepository
+from database.repositories.song_repository import SongRepository
 
 class AlbumService:
-    @staticmethod
-    def get_all_albums(limit: Optional[int] = None) -> List[AlbumInDB]:
-        query = {}
-        cursor = albums_collection.find(query)
-        if limit:
-            cursor = cursor.limit(limit)
-        albums = list(cursor)
-        return [
-            AlbumInDB(
-                id=str(album["_id"]),
-                title=album.get("title", ""),
-                artistId=str(album.get("artistId", ObjectId())),
-                releaseYear=album.get("releaseYear", 0),
-                coverArt=album.get("coverArt", ""),
-                songIds=[str(song_id) for song_id in album.get("songIds", [])],
-                created_at=album.get("created_at", datetime.utcnow())
-            )
-            for album in albums
-        ]
+    def __init__(self):
+        self.album_repo = AlbumRepository()
+        self.song_repo = SongRepository()
 
-    @staticmethod
-    def get_album_by_id(album_id: str) -> Optional[AlbumInDB]:
-        album = albums_collection.find_one({"_id": ObjectId(album_id)})
-        if not album:
-            return None
-        artist = artists_collection.find_one({"_id": album["artistId"]})
-        songs = list(songs_collection.find({"_id": {"$in": album.get("songIds", [])}}))
-        song_data = [
-            {
-                "id": str(song["_id"]),
-                "title": song.get("title", ""),
-                "album": song.get("album", ""),
-                "releaseYear": song.get("releaseYear", 0),
-                "coverArt": song.get("coverArt", ""),
-                "audioUrl": song.get("audioUrl", ""),
-                "genre": song.get("genre", "")
-            }
-            for song in songs
-        ]
+    def _build_album_in_db(self, album: dict) -> AlbumInDB:
         return AlbumInDB(
             id=str(album["_id"]),
             title=album.get("title", ""),
-            artistId=str(album.get("artistId", ObjectId())),
-            releaseYear=album.get("releaseYear", 0),
-            coverArt=album.get("coverArt", ""),
-            songIds=[str(song_id) for song_id in album.get("songIds", [])],
-            created_at=album.get("created_at", datetime.utcnow())
+            artist_id=str(album.get("artist_id", "")),
+            cover_art=album.get("cover_art", ""),
+            release_year=album.get("release_year", 0),
+            genre=album.get("genre", ""),
+            songs=album.get("songs", []),
+            created_at=album.get("created_at", datetime.utcnow()),
+            updated_at=album.get("updated_at", None)
         )
 
-    @staticmethod
-    def create_album(album_data: AlbumCreate) -> str:
-        new_album = album_data.dict(exclude_unset=True)
-        new_album["created_at"] = datetime.utcnow()
-        result = albums_collection.insert_one(new_album)
-        return str(result.inserted_id)
+    def get_all_albums(self, limit: Optional[int] = None, skip: int = 0) -> List[AlbumInDB]:
+        try:
+            albums = self.album_repo.find_all(limit=limit, skip=skip)
+            return [self._build_album_in_db(album) for album in albums]
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Không thể lấy danh sách album: {str(e)}")
 
-    @staticmethod
-    def update_album(album_id: str, album_data: AlbumUpdate) -> bool:
-        update_data = album_data.dict(exclude_unset=True)
-        result = albums_collection.update_one(
-            {"_id": ObjectId(album_id)},
-            {"$set": update_data}
-        )
-        return result.matched_count > 0
+    def get_album_by_id(self, album_id: str) -> Optional[AlbumInDB]:
+        try:
+            print(f"Searching for album with ID: {album_id}")  # Thêm log debug
+            album = self.album_repo.find_by_id(album_id)
+            if not album:
+                return None
+            return self._build_album_in_db(album)
+        except InvalidId:
+            raise HTTPException(status_code=400, detail="ID album không hợp lệ")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Không thể lấy thông tin album: {str(e)}")
 
-    @staticmethod
-    def delete_album(album_id: str) -> bool:
-        result = albums_collection.delete_one({"_id": ObjectId(album_id)})
-        return result.deleted_count > 0
-    
+    def create_album(self, album_data: AlbumCreate) -> str:
+        try:
+            new_album = album_data.dict(exclude_unset=True)
+            new_album["created_at"] = datetime.utcnow()
+            new_album["updated_at"] = datetime.utcnow()
+            result = self.album_repo.insert(new_album)
+            return str(result.inserted_id)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Không thể tạo album: {str(e)}")
 
-    
+    def update_album(self, album_id: str, album_data: AlbumUpdate) -> bool:
+        try:
+            update_data = album_data.dict(exclude_unset=True)
+            if not update_data:
+                raise ValueError("Không có dữ liệu cập nhật được cung cấp")
+            update_data["updated_at"] = datetime.utcnow()
+            result = self.album_repo.update(album_id, update_data)
+            return result
+        except InvalidId:
+            raise HTTPException(status_code=400, detail="ID album không hợp lệ")
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Không thể cập nhật album: {str(e)}")
+
+    def delete_album(self, album_id: str) -> bool:
+        try:
+            result = self.album_repo.delete(album_id)
+            return result
+        except InvalidId:
+            raise HTTPException(status_code=400, detail="ID album không hợp lệ")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Không thể xóa album: {str(e)}")
