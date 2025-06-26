@@ -7,8 +7,8 @@ import {
   Home, Search, Library, Music, Heart, ListMusic, PlusCircle
 } from "lucide-react";
 import CustomCreatePlaylistModal from "@/components/playlist/CustomCreatePlaylistModal";
+import { getAllPlaylists } from "@/lib/api/playlists";
 
-import { fetchPlaylists } from "@/lib/api";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -17,8 +17,12 @@ export default function Sidebar() {
 
   useEffect(() => {
     async function loadPlaylists() {
-      const playlistsData = await fetchPlaylists();
-      setPlaylists(playlistsData || []);
+      try {
+        const playlistsData = await getAllPlaylists();
+        setPlaylists(playlistsData || []);
+      } catch (e) {
+        console.error("Failed to load playlists:", e);
+      }
     }
     loadPlaylists();
   }, []);
@@ -57,29 +61,35 @@ export default function Sidebar() {
         </nav>
 
         <div className="mt-8">
-<div className="flex items-center justify-between mb-4">
-  <h3 className="text-gray-400 font-medium text-xs uppercase tracking-wider">Playlists</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-gray-400 font-medium text-xs uppercase tracking-wider">Playlists</h3>
 
-  {/* Nút mở modal */}
-  <button
-    onClick={() => setIsCreateOpen(true)}
-    className="text-gray-400 hover:text-white"
-    title="Create new playlist"
-  >
-    <PlusCircle size={18} />
-  </button>
-</div>
+            {/* Nút mở modal */}
+            <button
+              onClick={() => setIsCreateOpen(true)}
+              className="text-gray-400 hover:text-white"
+              title="Create new playlist"
+            >
+              <PlusCircle size={18} />
+            </button>
+          </div>
 
-{/* Modal ở bên dưới, trigger mở từ state */}
-<CustomCreatePlaylistModal
-  open={isCreateOpen}
-  onClose={() => setIsCreateOpen(false)}
-  onPlaylistCreated={(playlist) => {
-    setPlaylists((prev) => [playlist, ...prev.slice(0, 7)]);
-  }}
-/>
+          {/* Modal tạo playlist */}
+          <CustomCreatePlaylistModal
+            open={isCreateOpen}
+            onClose={() => setIsCreateOpen(false)}
+            onPlaylistCreated={async () => {
+              try {
+                const latest = await getAllPlaylists();
+                setPlaylists(latest || []);
+              } catch (e) {
+                console.error("Failed to refresh playlists:", e);
+              }
+            }}
+          />
 
 
+          {/* Danh sách playlist */}
           <div className="space-y-1">
             <Link
               href="/playlist/liked"
