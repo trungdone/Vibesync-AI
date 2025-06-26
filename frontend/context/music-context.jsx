@@ -1,26 +1,19 @@
 "use client";
-
 import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { fetchSongs } from "@/lib/api";
 
 const MusicContext = createContext();
 
 export function MusicProvider({ children }) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentSong, setCurrentSong] = useState(null);
   const [songs, setSongs] = useState([]);
-  const audioRef = useRef(null); // Shared audioRef for <audio> element
+  const [currentSong, setCurrentSong] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isShuffling, setIsShuffling] = useState(false);
+  const [repeatMode, setRepeatMode] = useState(0);
+  const audioRef = useRef(null);
 
   useEffect(() => {
-    async function loadSongs() {
-      try {
-        const data = await fetchSongs();
-        setSongs(data.songs || []);
-      } catch (error) {
-        console.error("Error loading songs:", error);
-      }
-    }
-    loadSongs();
+    fetchSongs().then(data => setSongs(data || []));
   }, []);
 
   const playSong = (song) => {
@@ -29,63 +22,59 @@ export function MusicProvider({ children }) {
   };
 
   const togglePlayPause = () => {
-    if (!audioRef.current) return;
-
+    const audio = audioRef.current;
+    if (!audio) return;
     if (isPlaying) {
-      audioRef.current.pause();
+      audio.pause();
+      setIsPlaying(false);
     } else {
-      audioRef.current.play().catch((err) => console.error("Play error:", err));
+      if (audio.currentTime === audio.duration) audio.currentTime = 0;
+      audio.play().then(() => setIsPlaying(true)).catch(() => {});
     }
-
-    setIsPlaying((prev) => !prev);
   };
 
-const nextSong = () => {
-  const currentIndex = songs.findIndex((s) => s.id === currentSong?.id);
-  const next = songs[(currentIndex + 1) % songs.length];
-  if (next) {
-    setCurrentSong(next);
-    setIsPlaying(true);
+  const nextSong = () => {
+    if (!songs.length) return;
+    const idx = songs.findIndex(s => s.id === currentSong?.id);
+    let next = null;
 
-    // Thêm đoạn này để phát ngay bài mới
-    setTimeout(() => {
-      if (audioRef.current) {
-        audioRef.current.play().catch((err) => console.error("Play error on nextSong:", err));
-      }
-    }, 100);
-  }
-};
+    if (isShuffling) {
+      let r;
+      do { r = Math.floor(Math.random() * songs.length); } while (r === idx && songs.length > 1);
+      next = songs[r];
+    } else {
+      const isLast = idx === songs.length - 1;
+      if (isLast) {
+        if (repeatMode === 2) next = songs[0];
+        else {
+          setIsPlaying(false);
+          return;
+        }
+      } else next = songs[idx + 1];
+    }
 
+    if (next) {
+      setCurrentSong(next);
+      setIsPlaying(true);
+    }
+  };
 
   const prevSong = () => {
-    const currentIndex = songs.findIndex((s) => s.id === currentSong?.id);
-    const prev = songs[(currentIndex - 1 + songs.length) % songs.length];
-    if (prev) playSong(prev);
+    if (!songs.length) return;
+    const idx = songs.findIndex(s => s.id === currentSong?.id);
+    const prev = songs[(idx - 1 + songs.length) % songs.length];
+    playSong(prev);
   };
 
-  const resetPlayer = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    setCurrentSong(null);
-    setIsPlaying(false);
-  };
+  const toggleShuffle = () => setIsShuffling(p => !p);
+  const toggleRepeat = () => setRepeatMode(m => (m + 1) % 3);
 
   return (
-    <MusicContext.Provider
-      value={{
-        songs,
-        isPlaying,
-        currentSong,
-        playSong,
-        togglePlayPause,
-        nextSong,
-        prevSong,
-        resetPlayer,
-        audioRef, // Expose audioRef
-      }}
-    >
+    <MusicContext.Provider value={{
+      songs, currentSong, isPlaying, isShuffling, repeatMode,
+      audioRef, playSong, togglePlayPause, nextSong, prevSong,
+      toggleShuffle, toggleRepeat
+    }}>
       {children}
     </MusicContext.Provider>
   );
