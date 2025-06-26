@@ -1,90 +1,65 @@
-// components/songs/song-list.jsx
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
-import { Play, MoreHorizontal } from "lucide-react";
 import { useMusic } from "@/context/music-context";
-import { formatDuration } from "@/lib/utils";
+import { Play, Pause } from "lucide-react";
+import SongActionsMenu from "./song-actions-menu";
+
+
 
 export default function SongList({ songs }) {
-  const { playSong, isPlaying, currentSong, togglePlayPause } = useMusic();
-
-  if (!songs || !songs.length) {
-    return <p>No songs available</p>;
-  }
-
-  const handlePlayClick = (song) => {
-    playSong(song);
-    togglePlayPause();
-  };
+  const { currentSong, isPlaying, playSong } = useMusic();
+  
 
   return (
-    <div className="bg-white/5 rounded-lg overflow-hidden">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b border-white/10 text-left text-gray-400">
-            <th className="p-4 w-12">#</th>
-            <th className="p-4">Title</th>
-            <th className="p-4 hidden md:table-cell">Album</th>
-            <th className="p-4 hidden md:table-cell">Duration</th>
-            <th className="p-4 w-12"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {songs.map((song, index) => (
-            <tr
-              key={song.id}
-              className={`border-b border-white/5 hover:bg-white/10 ${
-                currentSong?.id === song.id ? "bg-white/10" : ""
-              }`}
+    <div className="space-y-2">
+      
+      {songs.map((song) => (
+        <div
+          key={song.id}
+          className="flex items-center justify-between p-2 rounded-md transition-colors hover:bg-gray-800/40 group"
+        >
+          {/* LEFT: Thumbnail + Title */}
+          <div className="flex items-center gap-4">
+            {/* ▶️ Button */}
+            <button
+              onClick={() => playSong(song)}
+              className="p-1 hover:bg-gray-600 rounded-full"
             >
-              <td className="p-4 text-gray-400">
-                <div className="relative w-6 h-6 flex items-center justify-center group">
-                  <span className="group-hover:opacity-0">{index + 1}</span>
-                  <button
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 flex items-center justify-center"
-                    onClick={() => handlePlayClick(song)}
-                  >
-                    {currentSong?.id === song.id && isPlaying ? (
-                      <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                    ) : (
-                      <Play size={14} />
-                    )}
-                  </button>
-                </div>
-              </td>
-              <td className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0">
-                    <Image
-                      src={song.coverArt || "/placeholder.svg"}
-                      alt={song.title}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <div>
-                    <Link href={`/song/${song.id}`} className="font-medium hover:underline">
-                      {song.title}
-                    </Link>
-                    <p className="text-sm text-gray-400">{song.artist}</p>
-                  </div>
-                </div>
-              </td>
-              <td className="p-4 text-gray-400 hidden md:table-cell">{song.album || "N/A"}</td>
-              <td className="p-4 text-gray-400 hidden md:table-cell">
-                {formatDuration(song.duration) || "0:00"}
-              </td>
-              <td className="p-4">
-                <button className="text-gray-400 hover:text-white">
-                  <MoreHorizontal size={18} />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              {currentSong?.id === song.id && isPlaying ? (
+                <Pause className="w-5 h-5 text-white" />
+              ) : (
+                <Play className="w-5 h-5 text-white" />
+              )}
+            </button>
+
+            {/* Cover + Info */}
+            <img
+              src={song.coverArt || "/placeholder.jpg"}
+              alt={song.title}
+              className="w-12 h-12 object-cover rounded"
+            />
+            <div>
+              <p className="text-sm font-medium text-white">{song.title}</p>
+              <p className="text-xs text-gray-400">{song.artist} • {song.album}</p>
+            </div>
+          </div>
+
+          {/* RIGHT: duration + menu */}
+          <div className="flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="text-sm text-gray-400">
+              {formatDuration(song.duration)}
+            </span>
+              <SongActionsMenu song={song} />
+          </div>
+        </div>
+      ))}
     </div>
   );
+}
+
+// Helper to format duration in mm:ss
+function formatDuration(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  const remaining = seconds % 60;
+  return `${minutes}:${remaining.toString().padStart(2, "0")}`;
 }
