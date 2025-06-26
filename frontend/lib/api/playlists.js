@@ -1,4 +1,3 @@
-// lib/api/playlists.js
 import { apiFetch } from "../utils";
 
 export async function fetchPlaylists() {
@@ -12,10 +11,18 @@ export async function fetchPlaylistById(id) {
 }
 
 export async function createPlaylist(data) {
-  const endpoint = "/api/playlists";
-  return await apiFetch(endpoint, {
+  const response = await fetch("/api/playlists", {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(data),
-    headers: { "Content-Type": "application/json" },
   });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.detail || "Failed to create playlist");
+  }
+
+  return await response.json(); // Trả về newPlaylist với id
 }

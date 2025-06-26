@@ -34,17 +34,16 @@ export default function ClientLayout({ children }) {
     return <>{children}</>;
   }
 
-  return (
-    <MusicProvider>
-      <div className="flex flex-col h-screen bg-gradient-to-b from-purple-900/10 to-black">
-        <Header />
-        <div className="flex flex-1 overflow-hidden">
-          <Sidebar />
-          <main className="flex-1 overflow-y-auto p-4">{children}</main>
-        </div>
-        <Player />
+return (
+  <MusicProvider>
+    <div className="flex flex-col h-screen bg-gradient-to-b from-purple-900/10 to-black">
+      <Header />
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto p-4">{children}</main>
       </div>
-      
-    </MusicProvider>
-  );
+      <Player />
+    </div>
+  </MusicProvider>
+);
 }

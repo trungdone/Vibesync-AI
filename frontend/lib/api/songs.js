@@ -13,6 +13,11 @@ export async function fetchSongById(id) {
   return await apiFetch(endpoint);
 }
 
+export async function fetchSongsByIds(songIds) {
+  const promises = songIds.map((id) => apiFetch(`/api/songs/${id}`));
+  return await Promise.all(promises);
+}
+
 export async function createSong(data) {
   const endpoint = "/api/songs";
   return await apiFetch(endpoint, {

@@ -23,3 +23,5 @@ class ArtistRepository:
 
     def delete_one(self, artist_id: ObjectId):
         return self.collection.delete_one({"_id": artist_id})
+    
+    

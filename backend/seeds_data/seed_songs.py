@@ -1,140 +1,134 @@
-from database.db import songs_collection, artists_collection, albums_collection
-from bson import ObjectId
-from datetime import datetime
-import requests
-from cloudinary.uploader import upload
-from cloudinary import config  # Import config từ cloudinary
-from dotenv import load_dotenv
-import os
+# seeds_data/seed_songs.py
 
-# Tải biến môi trường từ .env
-load_dotenv()
- 
+from database.db import songs_collection, artists_collection
+from datetime import datetime, timezone
+from seeds_data.seed_artists import seed_artists
 
-# Xóa dữ liệu cũ
+
+# Step 1: Seed nghệ sĩ và lấy mapping name → ObjectId
+artist_map = seed_artists()
+print("[✅ DEBUG] artist_map:", artist_map)
+
+# Step 2: Xoá dữ liệu cũ
 songs_collection.delete_many({})
-artists_collection.delete_many({})
-albums_collection.delete_many({})
 
-# Seed artists
-artists = [
-    {
-        "name": "The Weeknd",
-        "bio": "Canadian singer-songwriter known for his unique voice.",
-        "created_at": datetime.utcnow()
-    },
-    {
-        "name": "Ed Sheeran",
-        "bio": "British singer-songwriter with a global hit catalog.",
-        "created_at": datetime.utcnow()
-    },
-    {
-        "name": "Dua Lipa",
-        "bio": "British-Albanian singer known for disco-pop hits.",
-        "created_at": datetime.utcnow()
-    }
-]
-inserted_artists = artists_collection.insert_many(artists)
-artist_ids = inserted_artists.inserted_ids  # Lấy danh sách _id tự động sinh
 
-# Hàm kiểm tra URL
-def is_url_accessible(url):
-    try:
-        response = requests.head(url, timeout=5)
-        return response.status_code == 200
-    except:
-        return False
-
-# Cấu hình Cloudinary
-cloudinary_config = {
-    "cloud_name": os.getenv("CLOUDINARY_CLOUD_NAME", "dhifiomji"),
-    "api_key": os.getenv("CLOUDINARY_API_KEY", "467596386185684"),
-    "api_secret": os.getenv("CLOUDINARY_API_SECRET", "cN3IFilAA5xzMMzi_AeLgoHRLBs")
-}
-config(**cloudinary_config)
+# Step 3: Chuẩn bị dữ liệu bài hát
+now = datetime.now(timezone.utc)
 
 songs = [
     {
-        "title": "Blinding Lights",
-        "artist": "The Weeknd",
-        "album": "After Hours",
-        "releaseYear": 2020,
-        "duration": 203,
-        "genre": "Synth-pop",
-        "coverArt": "https://res.cloudinary.com/dhifiomji/image/upload/v1750342631/images/AnhBoVai.jpg",
-        "audioUrl": "https://res.cloudinary.com/dhifiomji/raw/upload/v1718800000/audios/AnhBoVai.mp3",
-        "artistId": artist_ids[0],  # Khớp với The Weeknd
-        "created_at": datetime.utcnow()
+        "title": "Đi Về Nhà",
+        "artist": "Đen Vâu",
+        "album": "ShowCuaDen",
+        "releaseYear": 2024,
+        "duration": 325,
+        "genre": ["Hip-Hop", "Rap", "V-Pop"],
+        "coverArt": "https://res.cloudinary.com/dhifiomji/image/upload/v1750647290/diVeNha_rawgtu.jpg",
+        "audioUrl": "https://res.cloudinary.com/dhifiomji/raw/upload/v1750750807/audios/diVeNha.mp3",
+        "artistId": artist_map["Đen Vâu"],
+        "created_at": now
     },
     {
-        "title": "Shape of You",
-        "artist": "Ed Sheeran",
-        "album": "Divide",
-        "releaseYear": 2017,
-        "duration": 233,
-        "genre": "Pop",
-        "coverArt": "https://res.cloudinary.com/dhifiomji/image/upload/v1718800000/images/ChungTaCuaHienTai.jpg",
-        "audioUrl": "https://res.cloudinary.com/dhifiomji/raw/upload/v1718800000/audios/gheQua.mp3",
-        "artistId": artist_ids[1],  # Khớp với Ed Sheeran
-        "created_at": datetime.utcnow()
+        "title": "Ngày Đầu Tiên",
+        "artist": "Đức Phúc",
+        "album": "Single",
+        "releaseYear": 2024,
+        "duration": 328,
+        "genre": ["Pop", "Ballad", "V-Pop"],
+        "coverArt": "https://res.cloudinary.com/dhifiomji/image/upload/v1750647263/ngayDauTien_aveknh.jpg",
+        "audioUrl": "https://res.cloudinary.com/dhifiomji/raw/upload/v1750750854/audios/ngayDauTien.mp3",
+        "artistId": artist_map["Đức Phúc"],
+        "created_at": now
     },
     {
-        "title": "Levitating",
-        "artist": "Dua Lipa",
-        "album": "Future Nostalgia",
-        "releaseYear": 2020,
-        "duration": 203,
-        "genre": "Disco-pop",
-        "coverArt": "https://res.cloudinary.com/dhifiomji/image/upload/v1750342666/images/matKetNoi.jpg",
-        "audioUrl": "https://res.cloudinary.com/dhifiomji/raw/upload/v1718800000/audios/matKetNoi.mp3",
-        "artistId": artist_ids[2],  # Khớp với Dua Lipa
-        "created_at": datetime.utcnow()
+        "title": "Dù Cho Tận Thế",
+        "artist": "ERIK",
+        "album": "Single",
+        "releaseYear": 2024,
+        "duration": 353,
+        "genre": ["Pop", "V-Pop", "R&B"],
+        "coverArt": "https://res.cloudinary.com/dhifiomji/image/upload/v1750647290/duChoTanThe_rqtst5.jpg",
+        "audioUrl": "https://res.cloudinary.com/dhifiomji/raw/upload/v1750342592/audios/duChoTanThe.mp3",
+        "artistId": artist_map["ERIK"],
+        "created_at": now
+    },
+    {
+        "title": "Bắc Bling",
+        "artist": "Hòa Minzy",
+        "album": "Single",
+        "releaseYear": 2024,
+        "duration": 405,
+        "genre": ["Pop", "Ballad", "V-Pop"],
+        "coverArt": "https://res.cloudinary.com/dhifiomji/image/upload/v1750647285/bacBling_iibwiv.jpg",
+        "audioUrl": "https://res.cloudinary.com/dhifiomji/raw/upload/v1750750757/audios/bacBling.mp3",
+        "artistId": artist_map["Hòa Minzy"],
+        "created_at": now
+    },
+    {
+        "title": "Ngáo Ngơ",
+        "artist": "HieuThuHai",
+        "album": "Anh Trai Say Hi",
+        "releaseYear": 2024,
+        "duration": 432,
+        "genre": ["Hip-Hop", "Rap", "V-Pop"],
+        "coverArt": "https://res.cloudinary.com/dhifiomji/image/upload/v1750647262/ngaoNg%C6%A1_xvi1lj.jpg",
+        "audioUrl": "https://res.cloudinary.com/dhifiomji/raw/upload/v1750750852/audios/ngaoNg%C6%A1.mp3",
+        "artistId": artist_map["HieuThuHai"],
+        "created_at": now
+    },
+    {
+        "title": "Lời Tạm Biệt Chưa Nói",
+        "artist": "Kai Đinh",
+        "album": "Single",
+        "releaseYear": 2024,
+        "duration": 419,
+        "genre": ["Indie", "Ballad", "V-Pop"],
+        "coverArt": "https://res.cloudinary.com/dhifiomji/image/upload/v1750647262/loiTamBietChuaNoi_b8de78.jpg",
+        "audioUrl": "https://res.cloudinary.com/dhifiomji/raw/upload/v1750750841/audios/loiTamBietChuaNoi.mp3",
+        "artistId": artist_map["Kai Đinh"],
+        "created_at": now
+    },
+    {
+        "title": "Sài Gòn Hôm Nay Mưa",
+        "artist": "Hoàng Duyên",
+        "album": "Single",
+        "releaseYear": 2024,
+        "duration": 407,
+        "genre": ["Ballad", "V-Pop", "Indie"],
+        "coverArt": "https://res.cloudinary.com/dhifiomji/image/upload/v1750647267/saiGonHomNayMua_aezxmi.jpg",
+        "audioUrl": "https://res.cloudinary.com/dhifiomji/raw/upload/v1750750861/audios/saiGonHomNayMua.mp3",
+        "artistId": artist_map["Hoàng Duyên"],
+        "created_at": now
+    },
+    {
+        "title": "Trái Đất Ôm Mặt Trời",
+        "artist": "Hoàng Thùy Linh",
+        "album": "Single",
+        "releaseYear": 2024,
+        "duration": 314,
+        "genre": ["Pop", "V-Pop", "Electronic"],
+        "coverArt": "https://res.cloudinary.com/dhifiomji/image/upload/v1750647281/traiDatOmMatTroi_la2xnn.jpg",
+        "audioUrl": "https://res.cloudinary.com/dhifiomji/raw/upload/v1750750866/audios/traiDatOmMatTroi.mp3",
+        "artistId": artist_map["Hoàng Thùy Linh"],
+        "created_at": now
+    },
+    {
+        "title": "Yêu Một Người Có Lẽ",
+        "artist": "JSOL",
+        "album": "Single",
+        "releaseYear": 2024,
+        "duration": 210,
+        "genre": ["Pop", "V-Pop", "R&B"],
+        "coverArt": "https://res.cloudinary.com/dhifiomji/image/upload/v1750647281/yeuMotNguoiCoLe_vvbgzk.jpg",
+        "audioUrl": "https://res.cloudinary.com/dhifiomji/raw/upload/v1750750878/audios/yeuMotNguoiCoLe.mp3",
+        "artistId": artist_map["JSOL"],
+        "created_at": now
     }
 ]
-inserted_songs = songs_collection.insert_many(songs)
-song_ids = inserted_songs.inserted_ids
 
-# Seed albums
-albums = [
-    {
-        "title": "After Hours",
-        "artistId": artist_ids[0],
-        "releaseYear": 2020,
-        "coverArt": "https://res.cloudinary.com/dhifiomji/image/upload/v1750342631/images/AnhBoVai.jpg",
-        "songIds": [song_ids[0]],  # Liên kết với Blinding Lights
-        "created_at": datetime.utcnow()
-    },
-    {
-        "title": "Divide",
-        "artistId": artist_ids[1],
-        "releaseYear": 2017,
-        "coverArt": "https://res.cloudinary.com/dhifiomji/image/upload/v1718800000/images/ChungTaCuaHienTai.jpg",
-        "songIds": [song_ids[1]],  # Liên kết với Shape of You
-        "created_at": datetime.utcnow()
-    },
-    {
-        "title": "Future Nostalgia",
-        "artistId": artist_ids[2],
-        "releaseYear": 2020,
-        "coverArt": "https://res.cloudinary.com/dhifiomji/image/upload/v1750342666/images/matKetNoi.jpg",
-        "songIds": [song_ids[2]],  # Liên kết với Levitating
-        "created_at": datetime.utcnow()
-    }
-]
-albums_collection.insert_many(albums)
-
-def seed_data():
-    artists_collection.delete_many({})
-    inserted_artists = artists_collection.insert_many(artists)
-    albums_collection.delete_many({})
-    albums_collection.insert_many(albums)
-    songs_collection.delete_many({})
-    for song in songs:
-        if not is_url_accessible(song["coverArt"]) or not is_url_accessible(song["audioUrl"]):
-            print(f"Warning: URL not accessible for {song['title']}")
-        else:
-            songs_collection.insert_one(song)
-    print("✅ Data seeded successfully.")
-
-if __name__ == "__main__":
-    seed_data()
+# Step 4: Seed songs
+inserted = songs_collection.insert_many(songs)
+song_ids = inserted.inserted_ids
+song_map = {song["title"]: song_id for song, song_id in zip(songs, song_ids)}
+print(f"✅ Seeded {len(inserted.inserted_ids)} songs successfully.")

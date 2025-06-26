@@ -4,12 +4,14 @@ from datetime import datetime
 from typing import List, Optional
 from models.song import SongCreate, SongUpdate, SongInDB
 from database.repositories.song_repository import SongRepository
+from database.repositories.artist_repository import ArtistRepository
 from urllib.request import urlopen
 from urllib.error import HTTPError
 
 class SongService:
-    def __init__(self, song_repository: SongRepository):
+    def __init__(self, song_repository: SongRepository, artist_repository: ArtistRepository):
         self.song_repository = song_repository
+        self.artist_repository = artist_repository
 
     @staticmethod
     def _map_to_song_in_db(song: dict) -> SongInDB:
@@ -20,11 +22,12 @@ class SongService:
             album=song.get("album", ""),
             releaseYear=song.get("releaseYear", 0),
             duration=song.get("duration", 0),
-            genre=song.get("genre", ""),
+            genre=song.get("genre", []),
             coverArt=song.get("coverArt", ""),
             audioUrl=song.get("audioUrl", ""),
             artistId=str(song.get("artistId", "")),
-            created_at=song.get("created_at", datetime.utcnow())
+            created_at=song.get("created_at", datetime.utcnow()),
+            updated_at=song.get("updated_at", None)
         )
 
     @staticmethod
@@ -47,7 +50,7 @@ class SongService:
 
     def create_song(self, song_data: SongCreate) -> str:
         # Kiểm tra artistId tồn tại
-        if not artists_collection.find_one({"_id": ObjectId(song_data.artistId)}):
+        if not self.artist_repository.find_by_id(ObjectId(song_data.artistId)):
             raise ValueError(f"Artist with ID {song_data.artistId} does not exist")
 
         # Kiểm tra URL media
@@ -57,14 +60,17 @@ class SongService:
             raise ValueError("Invalid or inaccessible cover art URL")
 
         new_song = song_data.dict(exclude_unset=True)
+        new_song["artistId"] = str(new_song["artistId"])  # Đảm bảo artistId là chuỗi
         new_song["created_at"] = datetime.utcnow()
+        new_song["updated_at"] = None
         return str(self.song_repository.insert(new_song))
 
     def update_song(self, song_id: str, song_data: SongUpdate) -> bool:
         update_data = song_data.dict(exclude_unset=True)
         if "artistId" in update_data:
-            if not artists_collection.find_one({"_id": ObjectId(update_data["artistId"])}):
+            if not self.artist_repository.find_by_id(ObjectId(update_data["artistId"])):
                 raise ValueError(f"Artist with ID {update_data['artistId']} does not exist")
+            update_data["artistId"] = str(update_data["artistId"])  # Đảm bảo artistId là chuỗi
         if "audioUrl" in update_data and update_data["audioUrl"]:
             if not self._is_url_accessible(update_data["audioUrl"]):
                 raise ValueError("Invalid or inaccessible audio URL")
