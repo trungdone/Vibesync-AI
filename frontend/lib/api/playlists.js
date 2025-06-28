@@ -75,3 +75,13 @@ export async function deletePlaylist(playlistId) {
   if (!res.ok) throw new Error("Failed to delete playlist");
   return res.json();
 }
+
+// lib/api/playlists.js
+
+export async function getAllPublicPlaylists() {
+  const res = await fetch(`${API_BASE}/playlists?isPublic=true`, {
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("Failed to fetch public playlists");
+  return res.json();
+}
