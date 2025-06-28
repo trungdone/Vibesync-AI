@@ -37,3 +37,21 @@ export async function createSong(data) {
 }
 
 // Thêm các phương thức update, delete nếu cần
+
+export async function fetchSongsByArtist(artistId) {
+  const endpoint = "/api/songs";
+  return await apiFetch(endpoint, { fallbackOnError: [] })
+    .then(data => {
+      const songs = Array.isArray(data.songs) ? data.songs : (Array.isArray(data) ? data : []);
+      return songs.filter(song => song.artistId === artistId);
+    });
+}
+
+export async function fetchTopSongs(limit = 10) {
+  const endpoint = "/api/songs";
+  return await apiFetch(endpoint, { fallbackOnError: [] })
+    .then(data => {
+      const songs = Array.isArray(data.songs) ? data.songs : (Array.isArray(data) ? data : []);
+      return songs.sort(() => 0.5 - Math.random()).slice(0, limit); // Sắp xếp ngẫu nhiên
+    });
+}
