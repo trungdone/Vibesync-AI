@@ -7,8 +7,10 @@ class PlaylistBase(BaseModel):
     title: str
     description: Optional[str] = "A new playlist"
     creator: str = "You"
-    songIds: List[str] = []  # Danh sách ObjectId của bài hát
+    songIds: Optional[List[str]] = []  # Danh sách ObjectId của bài hát
     coverArt: Optional[str] = "https://via.placeholder.com/640x640.png?text=Playlist+Cover"
+    isPublic: Optional[bool] = True
+    isShuffle: Optional[bool] = False
 
     @validator("title")
     def title_must_not_be_empty(cls, v):
@@ -33,3 +35,6 @@ class PlaylistInDB(PlaylistBase):
     class Config:
         arbitrary_types_allowed = True
         json_encoders = {ObjectId: str}
+
+class PlaylistCreate(PlaylistBase):
+    pass

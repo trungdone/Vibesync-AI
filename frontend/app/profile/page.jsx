@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SongList from "@/components/songs/song-list";
 import PlaylistGrid from "@/components/playlist/playlist-grid";
-import { fetchPlaylists, fetchSongs } from "@/lib/api";
+import { getAllPlaylists } from "@/lib/api/playlists";
 import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
@@ -40,10 +40,10 @@ export default function ProfilePage() {
         if (!userResponse.ok) throw new Error(detail);
         setUser(userData);
 
-        const playlistData = await fetchPlaylists();
+        const playlistData = await getAllPlaylists();
         setPlaylists(playlistData.slice(0, 8) || []);
 
-        const songData = await fetchSongs();
+        const songData = await getAllPlaylists();
         // Kiểm tra và xử lý songData
         const songs = Array.isArray(songData) ? songData : songData?.songs || [];
         if (songs.length === 0) {

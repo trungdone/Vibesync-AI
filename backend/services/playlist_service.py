@@ -1,3 +1,4 @@
+#PlaylistService
 from bson import ObjectId
 from bson.errors import InvalidId
 from datetime import datetime
@@ -45,8 +46,9 @@ class PlaylistService:
             new_playlist = playlist_data.dict(exclude_unset=True)
             new_playlist["created_at"] = datetime.utcnow()
             new_playlist["updated_at"] = datetime.utcnow()
-            result = self.playlist_repo.insert(new_playlist)
-            return str(result.inserted_id)
+            playlist_id = self.playlist_repo.insert(new_playlist)
+            return playlist_id  # Đã là string rồi, không cần `.inserted_id`
+
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
@@ -75,3 +77,29 @@ class PlaylistService:
             raise HTTPException(status_code=400, detail="ID playlist không hợp lệ")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Không thể xóa playlist: {str(e)}")
+        
+    def add_song_to_playlist(self, playlist_id: str, song_id: str) -> bool:
+        playlist = self.playlist_repo.find_by_id(playlist_id)
+        if not playlist:
+            raise HTTPException(status_code=404, detail="Playlist not found")
+
+        # Tránh thêm trùng bài
+        song_ids = playlist.get("songIds", [])
+        if song_id in song_ids:
+            return True  # đã có thì coi như thành công
+
+        song_ids.append(song_id)
+        return self.playlist_repo.update(playlist_id, {"songIds": song_ids})
+
+    def remove_song_from_playlist(self, playlist_id: str, song_id: str) -> bool:
+        playlist = self.playlist_repo.find_by_id(playlist_id)
+        if not playlist:
+            raise HTTPException(status_code=404, detail="Playlist not found")
+
+        song_ids = playlist.get("songIds", [])
+        if song_id not in song_ids:
+            return True  # không có thì coi như đã xoá
+
+        song_ids.remove(song_id)
+        return self.playlist_repo.update(playlist_id, {"songIds": song_ids})
+

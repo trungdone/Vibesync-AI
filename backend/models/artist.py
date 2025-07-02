@@ -39,6 +39,8 @@ class ArtistInDB(ArtistBase):
     image: Optional[str] = None
     songs: List[SongData] = []
     albums: List[AlbumData] = []
+    followers: int = 0
+    follower_ids: Optional[List[str]] = []
     created_at: datetime
     updated_at: Optional[datetime] = None
 

@@ -18,6 +18,15 @@ export async function fetchSongsByIds(songIds) {
   return await Promise.all(promises);
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
+
+export async function getSongById(id) {
+  const res = await fetch(`${API_BASE}/songs/${id}`, { cache: "no-store" });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+
 export async function createSong(data) {
   const endpoint = "/api/songs";
   return await apiFetch(endpoint, {
@@ -28,3 +37,21 @@ export async function createSong(data) {
 }
 
 // Thêm các phương thức update, delete nếu cần
+
+export async function fetchSongsByArtist(artistId) {
+  const endpoint = "/api/songs";
+  return await apiFetch(endpoint, { fallbackOnError: [] })
+    .then(data => {
+      const songs = Array.isArray(data.songs) ? data.songs : (Array.isArray(data) ? data : []);
+      return songs.filter(song => song.artistId === artistId);
+    });
+}
+
+export async function fetchTopSongs(limit = 10) {
+  const endpoint = "/api/songs";
+  return await apiFetch(endpoint, { fallbackOnError: [] })
+    .then(data => {
+      const songs = Array.isArray(data.songs) ? data.songs : (Array.isArray(data) ? data : []);
+      return songs.sort(() => 0.5 - Math.random()).slice(0, limit); // Sắp xếp ngẫu nhiên
+    });
+}
