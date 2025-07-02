@@ -1,4 +1,3 @@
-// lib/api/albums.js
 import { apiFetch } from "../utils";
 
 export async function fetchAlbums(params = {}) {
@@ -15,13 +14,14 @@ export async function fetchAlbumById(id) {
   return data;
 }
 
-export async function fetchAlbumsByArtist(artist_id) {
+
+export async function createAlbum(data) {
   const endpoint = "/api/albums";
-  return await apiFetch(endpoint, { fallbackOnError: [] })
-    .then(data => {
-      const albums = Array.isArray(data.albums) ? data.albums : (Array.isArray(data) ? data : []);
-      return albums.filter(album => album.artist_id === artist_id);
-    });
+  return await apiFetch(endpoint, {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 export async function fetchAlbumsByArtist(artist_id) {

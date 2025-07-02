@@ -77,3 +77,45 @@ class ArtistService:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Không thể lấy thông tin nghệ sĩ: {str(e)}")
 
+    def create_artist(self, artist_data: ArtistCreate) -> str:
+        try:
+            new_artist = artist_data.dict(exclude_unset=True)
+            new_artist["created_at"] = datetime.utcnow()
+            new_artist["updated_at"] = datetime.utcnow()
+            new_artist["followers"] = new_artist.get("followers", 0)
+            if not new_artist.get("name"):
+                raise ValueError("Tên nghệ sĩ là bắt buộc")
+            result = self.artist_repo.insert_one(new_artist)
+            return str(result.inserted_id)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Không thể tạo nghệ sĩ: {str(e)}")
+
+    def update_artist(self, artist_id: str, artist_data: ArtistUpdate) -> bool:
+        try:
+            update_data = artist_data.dict(exclude_unset=True)
+            if not update_data:
+                raise ValueError("Không có dữ liệu cập nhật được cung cấp")
+            update_data["updated_at"] = datetime.utcnow()
+            result = self.artist_repo.update_one(ObjectId(artist_id), update_data)
+            return result.matched_count > 0
+        except InvalidId:
+            raise HTTPException(status_code=400, detail="ID nghệ sĩ không hợp lệ")
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Không thể cập nhật nghệ sĩ: {str(e)}")
+
+    def delete_artist(self, artist_id: str) -> bool:
+        try:
+            result = self.artist_repo.delete_one(ObjectId(artist_id))
+            if result.deleted_count > 0:
+                self.song_repo.delete_by_artist_id(ObjectId(artist_id))
+                self.album_repo.delete_by_artist_id(ObjectId(artist_id))
+                return True
+            return False
+        except InvalidId:
+            raise HTTPException(status_code=400, detail="ID nghệ sĩ không hợp lệ")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Không thể xóa nghệ sĩ: {str(e)}")

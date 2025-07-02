@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Search, Plus, Edit, Trash2, Eye } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-
+import { createArtist, updateArtist, deleteArtist, fetchArtists } from "./artistsApi";
 
 export function ArtistList({ artists, onAdd, onEdit, onDelete, onView }) {
   const [search, setSearch] = useState('');
