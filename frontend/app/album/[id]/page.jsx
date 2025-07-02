@@ -75,7 +75,7 @@ setArtist(artistData);
         <div className="flex-1 text-center md:text-left">
           <h1 className="text-4xl font-bold text-white mb-2">{album.title}</h1>
           <p className="text-gray-300">Release Year: {album.release_year}</p>
-          <p className="text-gray-300">Genre: {album.genres}</p>
+          <p className="text-gray-300">Genre: {album.genre}</p>
           <p className="text-gray-300">
   Artist: {artist ? artist.name : "Loading..."}
 </p>

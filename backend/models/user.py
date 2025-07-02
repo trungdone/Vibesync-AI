@@ -21,7 +21,6 @@ class UserInDB(UserBase):
     created_at: datetime
     avatar: Optional[str] = None
     banned: bool = False
-    
 
     class Config:
         arbitrary_types_allowed = True

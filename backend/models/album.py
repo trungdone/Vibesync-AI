@@ -1,14 +1,14 @@
 from pydantic import BaseModel, validator, HttpUrl
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 from bson import ObjectId
 
 class AlbumBase(BaseModel):
     title: str
     artist_id: str
-    cover_art: Optional[HttpUrl] = None  # Cho phép cover_art là None
+    cover_art: HttpUrl
     release_year: int
-    genres: List[str]
+    genre: str
     songs: List[str]  # Danh sách ObjectId của bài hát
 
     @validator("release_year")
@@ -21,16 +21,16 @@ class AlbumCreate(AlbumBase):
     pass
 
 class AlbumUpdate(BaseModel):
-    title: Optional[str] = None
-    cover_art: Optional[HttpUrl] = None  
-    release_year: Optional[int] = None
-    genres: Optional[List[str]] = None
-    songs: Optional[List[str]] = None
+    title: str = None
+    cover_art: HttpUrl = None
+    release_year: int = None
+    genre: str = None
+    songs: List[str] = None
 
 class AlbumInDB(AlbumBase):
     id: str
     created_at: datetime
-    updated_at: Optional[datetime] = None
+    updated_at: datetime = None
 
     class Config:
         arbitrary_types_allowed = True
