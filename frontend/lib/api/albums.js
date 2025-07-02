@@ -24,3 +24,11 @@ export async function fetchAlbumsByArtist(artist_id) {
     });
 }
 
+export async function fetchAlbumsByArtist(artist_id) {
+  const endpoint = "/api/albums";
+  return await apiFetch(endpoint, { fallbackOnError: [] })
+    .then(data => {
+      const albums = Array.isArray(data.albums) ? data.albums : (Array.isArray(data) ? data : []);
+      return albums.filter(album => album.artist_id === artist_id);
+    });
+}
