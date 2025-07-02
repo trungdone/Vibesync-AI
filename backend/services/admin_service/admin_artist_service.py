@@ -43,8 +43,31 @@ class AdminArtistService:
             created_at=artist.get("created_at", datetime.utcnow()),
             updated_at=artist.get("updated_at", datetime.utcnow()),
         )
+    
+    def search_artists(self, name: str) -> list[ArtistInDB]:
+        artists = self.repo.find_by_name(name)
+        return [
+            ArtistInDB(
+                id=str(artist["_id"]),
+                name=artist.get("name", ""),
+                bio=artist.get("bio", ""),
+                image=artist.get("image"),
+                songs=[],  # load if needed
+                albums=[],
+                genres=artist.get("genres", []),
+                followers=artist.get("followers", 0),
+                created_at=artist.get("created_at", datetime.utcnow()),
+                updated_at=artist.get("updated_at", datetime.utcnow()),
+            )
+            for artist in artists
+        ]
 
     def create_artist(self, data: ArtistCreate) -> str:
+        # Kiểm tra trùng lặp tên
+        existing_artist = self.repo.find_by_name(data.name)
+        if existing_artist:
+            raise ValueError("Artist with this name already exists")
+        
         artist_dict = data.dict()
         artist_dict["created_at"] = datetime.utcnow()
         artist_dict["updated_at"] = datetime.utcnow()

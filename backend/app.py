@@ -1,10 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import song_routes, user_routes, playlist_routes, albums_routes
+from routes import song_routes, user_routes, playlist_routes, albums_routes, artist_routes
 from fastapi.staticfiles import StaticFiles
 from routes.admin_routes.song_admin_routes import router as admin_song_router
 from routes.admin_routes.admin_artist_routes import router as admin_artist_router
+from routes.admin_routes.admin_album_routes import router as admin_album_router
 from dotenv import load_dotenv
+
 import os
 
 load_dotenv()
@@ -29,6 +31,9 @@ app.include_router(playlist_routes.router, prefix="/api")
 app.include_router(admin_artist_router, prefix="/api")
 app.include_router(albums_routes.router, prefix="/api")
 app.include_router(admin_song_router, prefix="/api")
+app.include_router(artist_routes.router, prefix="/api")
+app.include_router(admin_album_router, prefix="/api")
+
 
 
 @app.get("/")
