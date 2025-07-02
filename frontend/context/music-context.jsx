@@ -6,6 +6,7 @@ import axios from "axios";
 
 const MusicContext = createContext();
 
+
 export function MusicProvider({ children }) {
   const [songs, setSongs] = useState([]);
   const [currentSong, setCurrentSong] = useState(null);
@@ -68,6 +69,14 @@ export function MusicProvider({ children }) {
     setCurrentSong(song);
     setIsPlaying(true);
   };
+
+  const resetPlayer = () => {
+  setCurrentSong(null);
+  setIsPlaying(false);
+  audioRef.current?.pause();  // Optional: stop audio
+  audioRef.current = null;
+  };
+
 
   const togglePlayPause = () => {
     const audio = audioRef.current;

@@ -4,6 +4,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
 from models.user import UserRegister, UserUpdate
 from services.user_service import UserService
+from models.user import UserOut
+
 from auth import create_access_token, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES
 
 router = APIRouter(tags=["user"])
@@ -29,8 +31,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.get("/me")
-async def get_current_user_endpoint(current_user: dict = Depends(get_current_user)):
+@router.get("/me", response_model=UserOut)
+def get_me(current_user: UserOut = Depends(get_current_user)):
     return current_user
 
 @router.get("/users")

@@ -4,9 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import SongList from "@/components/songs/song-list";
 import PlaylistGrid from "@/components/playlist/playlist-grid";
-import { fetchPlaylists, fetchSongs } from "@/lib/api";
+import { getAllPlaylists } from "@/lib/api/playlists";
+import { useAuth } from "@/context/auth-context"; // add this
 
 export default function LibraryPage() {
+    const { user } = useAuth(); // 👈 get user info
+
   const [playlists, setPlaylists] = useState([]);
   const [likedSongs, setLikedSongs] = useState([]);
   const [historySongs, setHistorySongs] = useState([]);
@@ -23,11 +26,11 @@ export default function LibraryPage() {
           setLoading(true);
 
           // Gọi playlist
-          const playlistData = await fetchPlaylists();
+          const playlistData = await getAllPlaylists(user?.id);
           setPlaylists(playlistData || []);
 
           // Gọi song
-          const songData = await fetchSongs();
+          const songData = await getAllPlaylists();
           // Kiểm tra và xử lý songData
           const songs = Array.isArray(songData) ? songData : songData?.songs || [];
           if (songs.length === 0) {
@@ -62,7 +65,7 @@ export default function LibraryPage() {
 
       <div>
         <h2 className="text-xl font-semibold mb-2">Liked Songs</h2>
-        <SongList songs={likedSongs} />
+        {/* <SongList songs={likedSongs} /> */}
       </div>
 
       <div>

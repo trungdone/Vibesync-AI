@@ -1,9 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Play, Heart, MoreHorizontal, X } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { Play, Pause, Heart } from "lucide-react";
 import { useMusic } from "@/context/music-context";
 import { formatDuration } from "@/lib/utils";
 import WaveBars from "@/components/ui/WaveBars";
@@ -130,64 +130,27 @@ export default function SongList({ songs: propSongs }) {
             const isCurrent = currentSong?.id?.toString() === song.id?.toString();
             const isLiked = likedSongs.has(song.id);
 
-            return (
-              <tr
-                key={song.id}
-                className={`group border-b border-white/5 hover:bg-white/10 transition ${
-                  isCurrent ? "bg-white/10" : ""
-                }`}
+        return (
+          <div
+            key={song.id}
+            className={`flex items-center justify-between px-4 py-2 rounded-md transition hover:bg-white/10 group ${
+              isCurrent ? "bg-white/10" : ""
+            }`}
+          >
+            {/* LEFT */}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() =>
+                  isCurrent ? togglePlayPause() : playSong(song)
+                }
+                className="p-1 hover:bg-gray-600 rounded-full"
               >
-                <td className="p-4 text-gray-400">
-                  <div className="relative w-6 h-6 flex items-center justify-center">
-                    {isCurrent && isPlaying ? (
-                      <WaveBars />
-                    ) : (
-                      <>
-                        <span className="group-hover:opacity-0 transition-opacity">{index + 1}</span>
-                        <button
-                          className="absolute inset-0 opacity-0 group-hover:opacity-100 flex items-center justify-center"
-                          onClick={() => handlePlayClick(song)}
-                        >
-                          <Play size={16} className="text-white" />
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </td>
-
-                <td className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="relative w-10 h-10 rounded overflow-hidden flex-shrink-0">
-                      <Image
-                        src={song.coverArt || "/placeholder.svg"}
-                        alt={song.title}
-                        fill
-                        className={`object-cover ${isCurrent && isPlaying ? "animate-pulse" : ""}`}
-                      />
-                    </div>
-                    <div>
-                      <Link href={`/song/${song.id}`} className="font-medium hover:underline">
-                        {song.title}
-                      </Link>
-                      <p className="text-sm text-gray-400">{song.artist}</p>
-                    </div>
-                  </div>
-                </td>
-
-                <td className="p-4 text-gray-400 hidden md:table-cell">{song.album || "N/A"}</td>
-
-                <td className="p-4 text-gray-400 hidden md:table-cell">
-                  {formatDuration(song.duration || 0)}
-                </td>
-
-                <td className="p-4 text-right relative">
-                  <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => toggleLike(song.id)}
-                      className={`text-gray-400 hover:text-white ${isLiked ? "text-pink-500" : ""}`}
-                    >
-                      <Heart size={16} fill={isLiked ? "currentColor" : "none"} />
-                    </button>
+                {isCurrent && isPlaying ? (
+                  <Pause className="w-5 h-5 text-white" />
+                ) : (
+                  <Play className="w-5 h-5 text-white" />
+                )}
+              </button>
 
                     <button
                       ref={(el) => (moreBtnRefs.current[song.id] = el)}
@@ -250,12 +213,21 @@ export default function SongList({ songs: propSongs }) {
               </div>
             </div>
 
-            <button
-              onClick={() => setOptionsOpenId(null)}
-              className="text-gray-400 hover:text-white"
-            >
-              <X size={16} />
-            </button>
+            {/* RIGHT */}
+            <div className="flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="text-sm text-gray-400">
+                {formatDuration(song.duration)}
+              </span>
+              <button
+                onClick={() => toggleLike(song.id)}
+                className={`text-gray-400 hover:text-white ${
+                  isLiked ? "text-pink-500" : ""
+                }`}
+              >
+                <Heart size={16} fill={isLiked ? "currentColor" : "none"} />
+              </button>
+              <SongActionsMenu song={song} />
+            </div>
           </div>
 
           <div className="mt-4 border-t border-white/10 pt-3">

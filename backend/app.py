@@ -21,6 +21,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+
 )
 
 # Include routers
@@ -32,6 +33,7 @@ app.include_router(albums_routes.router, prefix="/api")
 app.include_router(admin_song_router, prefix="/api")
 app.include_router(artist_routes.router, prefix="/api")
 app.include_router(admin_album_router, prefix="/api")
+
 
 
 @app.get("/")

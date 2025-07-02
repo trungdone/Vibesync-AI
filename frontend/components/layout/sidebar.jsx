@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -31,6 +31,8 @@ export default function Sidebar() {
   useEffect(() => {
     if (!user?.id) return;
 
+    if (!user?.id) return;
+
     async function loadPlaylists() {
       try {
         const playlistsData = await getAllPlaylists(user.id);
@@ -39,6 +41,7 @@ export default function Sidebar() {
         console.error("Failed to load playlists:", e);
       }
     }
+
 
     loadPlaylists();
   }, [user]);
