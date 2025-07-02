@@ -70,12 +70,6 @@ export function MusicProvider({ children }) {
     setIsPlaying(true);
   };
 
-  const resetPlayer = () => {
-  setCurrentSong(null);
-  setIsPlaying(false);
-  audioRef.current?.pause();  // Optional: stop audio
-  audioRef.current = null;
-  };
 
 
   const togglePlayPause = () => {
