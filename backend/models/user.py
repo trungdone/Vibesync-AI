@@ -21,6 +21,8 @@ class UserInDB(UserBase):
     created_at: datetime
     avatar: Optional[str] = None
     banned: bool = False
+    likedSongs: list[str] = []  # ⬅️ Add this field
+
     
 
     class Config:
