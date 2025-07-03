@@ -6,6 +6,8 @@ import { Play, Pause, Heart, MoreHorizontal } from "lucide-react";
 import { useMusic } from "@/context/music-context";
 import { formatDuration } from "@/lib/utils";
 import SongActionsMenu from "./song-actions-menu";
+import Link from "next/link";
+
 
 export default function SongList({ songs: propSongs }) {
   const { playSong, isPlaying, currentSong, togglePlayPause, nextSong } = useMusic();
@@ -144,9 +146,27 @@ export default function SongList({ songs: propSongs }) {
                         <Play className="w-5 h-5 text-white" />
                       )}
                     </button>
-                    <div className="text-white font-medium">{song.title}</div>
+                    <div className="relative w-12 h-12">
+                      <Image
+                        src={song.coverArt || "/placeholder.svg"}
+                        alt="cover"
+                        fill
+                        className="object-cover rounded"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <Link
+                        href={`/song/${song.id}`}
+                        className="text-white font-medium truncate max-w-[180px] hover:underline"
+                      >
+                        {song.title}
+                      </Link>
+                      <span className="text-sm text-gray-400 truncate max-w-[180px]">{song.artist}</span>
+                    </div>
                   </div>
                 </td>
+
+
                 <td className="p-4 hidden md:table-cell text-gray-300">{song.album}</td>
                 <td className="p-4 hidden md:table-cell text-gray-300">{formatDuration(song.duration)}</td>
                 <td className="p-4 text-right">
