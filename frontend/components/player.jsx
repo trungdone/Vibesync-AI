@@ -10,6 +10,9 @@ import {
 } from "lucide-react";
 import { formatDuration } from "@/lib/utils";
 
+import { toggleLikeSong } from "@/lib/api/user"; // make sure path matches
+
+
 export default function Player() {
   const {
   currentSong,
@@ -28,12 +31,20 @@ export default function Player() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
+
+
+
+const [likedSongs, setLikedSongs] = useState(new Set());
+const token = localStorage.getItem("token"); // or get it from your auth context
+const isLiked = currentSong?.id && likedSongs.has(currentSong.id);
+
+
+
+
   const progressBarRef = useRef(null);
   const [showMore, setShowMore] = useState(false);
   const [optionsOpenId, setOptionsOpenId] = useState(null);
   const popupRef = useRef(null);
-  const toggleLike = () => setIsLiked(!isLiked);
 
   useEffect(() => {
   console.log("🔁 Audio src updated:", currentSong?.audioUrl);
@@ -110,6 +121,18 @@ const handleProgressChange = (e) => {
 };
 
 
+const handleToggleLike = async () => {
+  if (!currentSong?.id || !token) return;
+
+  try {
+    const data = await toggleLikeSong(currentSong.id, token);
+    setLikedSongs(new Set(data.likedSongs)); // replace with returned liked list
+  } catch (err) {
+    console.error("❌ Failed to toggle like:", err);
+  }
+};
+
+
   const handleVolumeChange = (e) => {
     const newVol = parseInt(e.target.value);
     setVolume(newVol);
@@ -180,10 +203,12 @@ const handleProgressChange = (e) => {
         
         <button
           className={`text-gray-400 hover:text-white ${isLiked ? "text-purple-500" : ""}`}
-          onClick={toggleLike}
+          onClick={handleToggleLike}
+          title={isLiked ? "Unlike" : "Like"}
         >
           <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
         </button>
+
         
 <button
   onClick={() => setShowMore(!showMore)}
