@@ -7,6 +7,7 @@ import { useMusic } from "@/context/music-context";
 import { formatDuration } from "@/lib/utils";
 import SongActionsMenu from "./song-actions-menu";
 import Link from "next/link";
+import WaveBars from "../ui/WaveBars";
 
 
 export default function SongList({ songs: propSongs }) {
@@ -133,27 +134,28 @@ export default function SongList({ songs: propSongs }) {
                 key={song.id}
                 className={`transition hover:bg-white/10 ${isCurrent ? "bg-white/10" : ""}`}
               >
-                <td className="p-4 text-gray-400">{index + 1}</td>
+                <td className="p-4 text-gray-400">
+                  {isCurrent && isPlaying ? (
+                    <WaveBars />
+                  ) : (
+                    index + 1
+                  )}
+                </td>
                 <td className="p-4">
                   <div className="flex items-center gap-4">
-                    <button
+                    
+                      <div
+                      className="relative w-12 h-12 cursor-pointer group"
                       onClick={() => handlePlayClick(song)}
-                      className="p-1 hover:bg-gray-600 rounded-full"
                     >
-                      {isCurrent && isPlaying ? (
-                        <Pause className="w-5 h-5 text-white" />
-                      ) : (
-                        <Play className="w-5 h-5 text-white" />
-                      )}
-                    </button>
-                    <div className="relative w-12 h-12">
                       <Image
                         src={song.coverArt || "/placeholder.svg"}
                         alt="cover"
                         fill
-                        className="object-cover rounded"
+                        className="object-cover rounded group-hover:opacity-80 transition"
                       />
                     </div>
+                    
                     <div className="flex flex-col">
                       <Link
                         href={`/song/${song.id}`}
@@ -161,8 +163,14 @@ export default function SongList({ songs: propSongs }) {
                       >
                         {song.title}
                       </Link>
-                      <span className="text-sm text-gray-400 truncate max-w-[180px]">{song.artist}</span>
+                      <Link
+                        href={`/artist/${song.artistId}`}
+                        className="text-sm text-gray-400 truncate max-w-[180px] hover:underline"
+                      >
+                        {song.artist}
+                      </Link>
                     </div>
+                    
                   </div>
                 </td>
 
