@@ -3,7 +3,9 @@ from datetime import datetime
 from typing import Optional, List
 from bson import ObjectId
 
+
 from pydantic import Field
+
 
 
 
@@ -52,6 +54,7 @@ class SongInDB(SongBase):
 
     class Config:
         arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
 
+        json_encoders = {ObjectId: str}
         
+

@@ -77,6 +77,7 @@ class ArtistService:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Không thể lấy thông tin nghệ sĩ: {str(e)}")
 
+
     def create_artist(self, artist_data: ArtistCreate) -> str:
         try:
             new_artist = artist_data.dict(exclude_unset=True)
@@ -119,3 +120,4 @@ class ArtistService:
             raise HTTPException(status_code=400, detail="ID nghệ sĩ không hợp lệ")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Không thể xóa nghệ sĩ: {str(e)}")
+

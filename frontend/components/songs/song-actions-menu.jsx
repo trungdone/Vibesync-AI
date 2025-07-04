@@ -2,17 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { addSongToPlaylist, getAllPlaylists } from "@/lib/api/playlists";
+import { useAuth } from "@/context/auth-context";
 
 export default function SongActionsMenu({ song }) {
   const [isOpen, setIsOpen] = useState(false);
   const [playlists, setPlaylists] = useState([]);
   const [selectedPlaylist, setSelectedPlaylist] = useState("");
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (isOpen) {
-      getAllPlaylists().then(setPlaylists);
+    if (isOpen && user?.id) {
+      getAllPlaylists(user.id).then(setPlaylists);
     }
-  }, [isOpen]);
+  }, [isOpen, user]);
 
   const handleAdd = async () => {
     if (!selectedPlaylist) return;
@@ -30,8 +32,8 @@ export default function SongActionsMenu({ song }) {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="text-gray-400 hover:text-white"
-        title="Song options"
+        className="text-gray-400 hover:text-white px-2 text-xl"
+        title="Add to Playlist"
       >
         ⋯
       </button>
@@ -41,7 +43,7 @@ export default function SongActionsMenu({ song }) {
           <div className="bg-zinc-900 text-white rounded-xl p-6 w-full max-w-sm relative">
             <button
               onClick={() => setIsOpen(false)}
-              className="absolute top-2 right-3 text-gray-400 hover:text-white"
+              className="absolute top-2 right-3 text-gray-400 hover:text-white text-lg"
             >
               ✕
             </button>

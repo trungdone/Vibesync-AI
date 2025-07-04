@@ -5,7 +5,11 @@ axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
 const API_URL = "http://localhost:8000/api";
 
+<<<<<<< HEAD
 export async function fetchSongs(params = {}) {
+=======
+export async function fetchSongs(params = { skip: 0, limit: 100 }) {
+>>>>>>> origin/main
   const token = localStorage.getItem("token");
   const query = new URLSearchParams(params).toString();
   const response = await axios.get(`${API_URL}/admin/songs?${query}`, {
@@ -72,4 +76,7 @@ export async function fetchArtists() {
   });
   return response.data;
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/main

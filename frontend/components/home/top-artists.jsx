@@ -6,7 +6,9 @@ import { fetchArtists } from "@/lib/api";
 export default async function TopArtists() {
   const data = await fetchArtists() || {};
   const artists = data.artists || [];
-  const topArtists = artists.slice(0, 12);
+
+  const topArtists = artists.slice(0, 6);
+
 
   return (
     <section>

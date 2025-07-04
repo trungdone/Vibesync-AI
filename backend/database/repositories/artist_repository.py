@@ -12,6 +12,10 @@ class ArtistRepository:
             cursor = cursor.limit(limit)
         return list(cursor)
 
+    
+    def find_by_name(self, name: str) -> List[dict]:
+     return list(self.collection.find({"name": {"$regex": f"^{name}$", "$options": "i"}}))
+
     def find_by_id(self, artist_id: ObjectId) -> Optional[dict]:
         return self.collection.find_one({"_id": artist_id})
 

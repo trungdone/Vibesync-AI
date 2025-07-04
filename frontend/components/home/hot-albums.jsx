@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-export default function Recomment() {
+export default function RecommendedAlbums() {
   const [albums, setAlbums] = useState([]);
 
   useEffect(() => {

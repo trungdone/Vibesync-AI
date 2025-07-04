@@ -18,9 +18,19 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // ✅ Load token và xác thực khi ứng dụng khởi chạy
+  // ✅ Hàm xóa token và user
+  const clearAuthStorage = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("user_id");
+    setUser(null);
+    setIsAuthenticated(false);
+  };
+
+  // ✅ Xác minh token khi load ứng dụng
   useEffect(() => {
     const token = localStorage.getItem("token");
+
     const checkToken = async () => {
       if (token) {
         try {
@@ -34,18 +44,22 @@ export function AuthProvider({ children }) {
       }
       setLoading(false);
     };
+
     checkToken();
   }, []);
 
-  // ✅ Xác thực token
+  // ✅ Hàm xác thực token
   const verifyToken = async (token) => {
     try {
+      setLoading(true);
       const response = await fetch("http://localhost:8000/user/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
+      const text = await response.text();
+
       if (response.ok) {
-        const userData = await response.json();
+        const userData = JSON.parse(text);
         setUser(userData);
         setIsAuthenticated(true);
         localStorage.setItem("user", JSON.stringify(userData));
@@ -57,16 +71,9 @@ export function AuthProvider({ children }) {
     } catch (err) {
       clearAuthStorage();
       throw err;
+    } finally {
+      setLoading(false);
     }
-  };
-
-  // ✅ Xóa dữ liệu token khỏi localStorage
-  const clearAuthStorage = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("user_id");
-    setUser(null);
-    setIsAuthenticated(false);
   };
 
   // ✅ Đăng nhập
@@ -121,6 +128,7 @@ export function AuthProvider({ children }) {
         throw new Error(data.detail || "Đăng ký thất bại");
       }
     } catch (err) {
+      console.error("❌ Lỗi đăng ký:", err.message);
       throw err;
     } finally {
       setLoading(false);
@@ -142,5 +150,5 @@ export function AuthProvider({ children }) {
   );
 }
 
-// ✅ Hook sử dụng Auth trong component
+// ✅ Hook tiện dùng
 export const useAuth = () => useContext(AuthContext);

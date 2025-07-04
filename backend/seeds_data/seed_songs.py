@@ -1,9 +1,6 @@
-# seeds_data/seed_songs.py
-
-from database.db import songs_collection, artists_collection
+from database.db import songs_collection
 from datetime import datetime, timezone
 from seeds_data.seed_artists import seed_artists
-
 
 # Step 1: Seed nghệ sĩ và lấy mapping name → ObjectId
 artist_map = seed_artists()
@@ -11,7 +8,6 @@ print("[✅ DEBUG] artist_map:", artist_map)
 
 # Step 2: Xoá dữ liệu cũ
 songs_collection.delete_many({})
-
 
 # Step 3: Chuẩn bị dữ liệu bài hát
 now = datetime.now(timezone.utc)
@@ -32,7 +28,7 @@ songs = [
     {
         "title": "Ngày Đầu Tiên",
         "artist": "Đức Phúc",
-        "album": "Single",
+        "album": "Đức Phúc Hit Collection",
         "releaseYear": 2024,
         "duration": 328,
         "genre": ["Pop", "Ballad", "V-Pop"],
@@ -44,7 +40,7 @@ songs = [
     {
         "title": "Dù Cho Tận Thế",
         "artist": "ERIK",
-        "album": "Single",
+        "album": "ERIK Best Hits",
         "releaseYear": 2024,
         "duration": 353,
         "genre": ["Pop", "V-Pop", "R&B"],
@@ -54,15 +50,15 @@ songs = [
         "created_at": now
     },
     {
-        "title": "Bắc Bling",
-        "artist": "Hòa Minzy",
+        "title": "3107",
+        "artist": "ERIK",
         "album": "Single",
         "releaseYear": 2024,
-        "duration": 405,
-        "genre": ["Pop", "Ballad", "V-Pop"],
-        "coverArt": "https://res.cloudinary.com/dhifiomji/image/upload/v1750647285/bacBling_iibwiv.jpg",
-        "audioUrl": "https://res.cloudinary.com/dhifiomji/raw/upload/v1750750757/audios/bacBling.mp3",
-        "artistId": artist_map["Hòa Minzy"],
+        "duration": 325,
+        "genre": ["Sad Music", "V-Pop"],
+        "coverArt": "https://res.cloudinary.com/dhifiomji/image/upload/v1750647282/3107_4_tvntdp.jpg",
+        "audioUrl": "https://res.cloudinary.com/dhifiomji/raw/upload/v1750750740/audios/31074.mp3",
+        "artistId": artist_map["ERIK"],
         "created_at": now
     },
     {
@@ -78,9 +74,21 @@ songs = [
         "created_at": now
     },
     {
+        "title": "Bắc Bling",
+        "artist": "Hòa Minzy",
+        "album": "Hòa Minzy Singles",
+        "releaseYear": 2024,
+        "duration": 405,
+        "genre": ["Pop", "Ballad", "V-Pop"],
+        "coverArt": "https://res.cloudinary.com/dhifiomji/image/upload/v1750647285/bacBling_iibwiv.jpg",
+        "audioUrl": "https://res.cloudinary.com/dhifiomji/raw/upload/v1750750757/audios/bacBling.mp3",
+        "artistId": artist_map["Hòa Minzy"],
+        "created_at": now
+    },
+    {
         "title": "Lời Tạm Biệt Chưa Nói",
         "artist": "Kai Đinh",
-        "album": "Single",
+        "album": "Kai Đinh Indie Mix",
         "releaseYear": 2024,
         "duration": 419,
         "genre": ["Indie", "Ballad", "V-Pop"],
@@ -92,7 +100,7 @@ songs = [
     {
         "title": "Sài Gòn Hôm Nay Mưa",
         "artist": "Hoàng Duyên",
-        "album": "Single",
+        "album": "Hoàng Duyên Ballads",
         "releaseYear": 2024,
         "duration": 407,
         "genre": ["Ballad", "V-Pop", "Indie"],
@@ -104,7 +112,7 @@ songs = [
     {
         "title": "Trái Đất Ôm Mặt Trời",
         "artist": "Hoàng Thùy Linh",
-        "album": "Single",
+        "album": "Hoàng Thùy Linh Pop",
         "releaseYear": 2024,
         "duration": 314,
         "genre": ["Pop", "V-Pop", "Electronic"],
@@ -116,7 +124,7 @@ songs = [
     {
         "title": "Yêu Một Người Có Lẽ",
         "artist": "JSOL",
-        "album": "Single",
+        "album": "JSOL R&B Hits",
         "releaseYear": 2024,
         "duration": 210,
         "genre": ["Pop", "V-Pop", "R&B"],
@@ -125,6 +133,7 @@ songs = [
         "artistId": artist_map["JSOL"],
         "created_at": now
     }
+    # 🔁 Bạn có thể thêm các bài khác vào đây, nhớ đóng `}` và có dấu `,`
 ]
 
 # Step 4: Seed songs

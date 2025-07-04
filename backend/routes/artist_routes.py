@@ -39,3 +39,4 @@ async def delete_artist(id: str):
     if not ArtistService().delete_artist(id):
         raise HTTPException(status_code=404, detail="Artist not found")
     return {"message": "Artist deleted successfully"}
+
