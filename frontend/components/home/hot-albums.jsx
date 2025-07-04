@@ -1,31 +1,15 @@
-"use client";
-
+// components/home/hot-albums.jsx
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { fetchAlbums } from "@/lib/api/albums";
 
-export default function RecommendedAlbums() {
-  const [albums, setAlbums] = useState([]);
-
-  useEffect(() => {
-    const fetchRecommendedAlbums = async () => {
-      try {
-        const res = await fetch("http://localhost:8000/api/recommend/albums");
-        if (!res.ok) throw new Error("Failed to fetch albums");
-        const data = await res.json();
-        setAlbums(data);
-      } catch (err) {
-        console.error("⚠️ Error loading recommended albums:", err);
-      }
-    };
-
-    fetchRecommendedAlbums();
-  }, []);
+export default async function HotAlbums() {
+  const albums = await fetchAlbums({ limit: 12 }) || [];
 
   return (
     <section className="space-y-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold text-white">Recommended Albums</h2>
+        <h2 className="text-2xl font-bold text-white">Hot Albums</h2>
         <Link href="/albums" className="text-sm text-purple-400 hover:underline">
           View All
         </Link>

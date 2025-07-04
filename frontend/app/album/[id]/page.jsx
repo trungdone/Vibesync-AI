@@ -16,37 +16,37 @@ export default function AlbumDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [songs, setSongs] = useState([]);
-  const [artist, setArtist] = useState(null);
+  const [artist, setArtist] = useState(null); 
 
-  useEffect(() => {
-    async function loadAlbum() {
-      try {
-        setLoading(true);
+useEffect(() => {
+  async function loadAlbum() {
+    try {
+      setLoading(true);
 
-        const albumData = await fetchAlbumById(id);
-        if (!albumData) throw new Error("Album not found");
+      const albumData = await fetchAlbumById(id);
+      if (!albumData) throw new Error("Album not found");
 
-        setAlbum(albumData);
+      setAlbum(albumData);
 
-        // ✅ Fetch chi tiết các bài hát và nghệ sĩ
-        if (albumData.songs && albumData.songs.length > 0) {
-          const songsData = await fetchSongsByIds(albumData.songs);
-          setSongs(songsData);
-        }
-
+      // ✅ Fetch chi tiết các bài hát
+      if (albumData.songs && albumData.songs.length > 0) {
+        const songsData = await fetchSongsByIds(albumData.songs);
+        setSongs(songsData);
         const artistData = await fetchArtistById(albumData.artist_id);
-        setArtist(artistData);
-
-      } catch (err) {
-        console.error("Error fetching album:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
+setArtist(artistData);
       }
+    } catch (err) {
+      console.error("Error fetching album:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    loadAlbum();
-  }, [id]);
+  loadAlbum();
+}, [id]);
+
+
 
   if (loading) {
     return <div className="flex justify-center items-center h-[60vh]">Loading...</div>;
@@ -75,19 +75,18 @@ export default function AlbumDetailPage() {
         <div className="flex-1 text-center md:text-left">
           <h1 className="text-4xl font-bold text-white mb-2">{album.title}</h1>
           <p className="text-gray-300">Release Year: {album.release_year}</p>
+          <p className="text-gray-300">Genre: {album.genres}</p>
           <p className="text-gray-300">
-            Genre: {album.genres && album.genres.length > 0 ? album.genres.join(", ") : album.genre || "N/A"}
-          </p>
-          <p className="text-gray-300">
-            Artist: {artist ? artist.name : "Loading..."}
-          </p>
+  Artist: {artist ? artist.name : "Loading..."}
+</p>
+
         </div>
       </div>
-
       <div className="p-4 bg-gray-900 rounded-lg shadow-lg">
         <h3 className="text-xl font-semibold text-white mb-4">Songs</h3>
         {album.songs && album.songs.length > 0 ? (
-          <SongList songs={songs} />
+<SongList songs={songs} />
+
         ) : (
           <p className="text-gray-400">No songs available for this album.</p>
         )}

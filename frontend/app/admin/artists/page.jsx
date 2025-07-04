@@ -3,10 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { fetchArtists } from "@/lib/api";
-<<<<<<< HEAD
-import { ArtistList } from "./ArtistList"; // ✅ import đúng thư mục hiện tại
-import { ArtistForm } from "./ArtistForm";
-=======
 import { ArtistList } from "./ArtistList";
 import { ArtistForm } from "./ArtistForm";
 import { ArtistView } from "./ArtistView";
@@ -54,17 +50,13 @@ const Alert = ({ type, message, onClose }) => {
     </motion.div>
   );
 };
->>>>>>> origin/main
 
 export default function AdminArtistsPage() {
   const [artists, setArtists] = useState([]);
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [showForm, setShowForm] = useState(false);
-<<<<<<< HEAD
-=======
   const [showView, setShowView] = useState(false);
   const [alert, setAlert] = useState(null);
->>>>>>> origin/main
   const router = useRouter();
 
   useEffect(() => {
@@ -72,10 +64,6 @@ export default function AdminArtistsPage() {
   }, []);
 
   const loadArtists = async () => {
-<<<<<<< HEAD
-    const data = await fetchArtists();
-    setArtists(data?.artists || []);
-=======
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(`${BASE_API_URL}/admin/artists`, {
@@ -87,7 +75,6 @@ export default function AdminArtistsPage() {
       console.error("Failed to load artists", err);
       setAlert({ type: "error", message: "Failed to load artists" });
     }
->>>>>>> origin/main
   };
 
   const handleAdd = () => {
@@ -101,32 +88,15 @@ export default function AdminArtistsPage() {
   };
 
   const handleView = (artist) => {
-<<<<<<< HEAD
-    alert(`Viewing artist: ${artist.name}`);
-    // Hoặc điều hướng đến trang chi tiết: router.push(`/admin/artists/${artist.id}`);
-=======
     setSelectedArtist(artist);
     setShowView(true);
     setShowForm(false);
->>>>>>> origin/main
   };
 
   const handleDelete = async (id) => {
     const confirmed = confirm("Are you sure you want to delete this artist?");
     if (!confirmed) return;
 
-<<<<<<< HEAD
-    const res = await fetch(`/api/artists/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: "Bearer admin-token", // thay bằng token thật
-      },
-    });
-    if (res.ok) {
-      loadArtists();
-    } else {
-      console.error("Failed to delete artist:", await res.text());
-=======
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(`${BASE_API_URL}/admin/artists/${id}`, {
@@ -155,36 +125,10 @@ export default function AdminArtistsPage() {
         type: "error",
         message: "An error occurred while deleting",
       });
->>>>>>> origin/main
     }
   };
 
   const handleFormSubmit = async (artistData) => {
-<<<<<<< HEAD
-    const method = selectedArtist ? "PUT" : "POST";
-    const url = selectedArtist ? `/api/artists/${selectedArtist.id}` : `/api/artists`;
-
-    const res = await fetch(url, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer admin-token",
-      },
-      body: JSON.stringify(artistData),
-    });
-
-    if (res.ok) {
-      setShowForm(false);
-      setSelectedArtist(null);
-      await loadArtists();
-    } else {
-      console.error("Failed to save artist:", await res.text());
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-=======
     const token = localStorage.getItem("token");
     const method = selectedArtist ? "PUT" : "POST";
     const url = selectedArtist
@@ -240,7 +184,6 @@ export default function AdminArtistsPage() {
           />
         )}
       </AnimatePresence>
->>>>>>> origin/main
       {showForm ? (
         <ArtistForm
           artist={selectedArtist}
@@ -250,8 +193,6 @@ export default function AdminArtistsPage() {
             setSelectedArtist(null);
           }}
         />
-<<<<<<< HEAD
-=======
       ) : showView ? (
         <ArtistView
           artist={selectedArtist}
@@ -260,7 +201,6 @@ export default function AdminArtistsPage() {
             setSelectedArtist(null);
           }}
         />
->>>>>>> origin/main
       ) : (
         <ArtistList
           artists={artists}
@@ -272,8 +212,4 @@ export default function AdminArtistsPage() {
       )}
     </div>
   );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> origin/main

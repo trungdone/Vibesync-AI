@@ -1,7 +1,6 @@
 // lib/api/albums.js
 import { apiFetch } from "../utils";
 
-// Lấy danh sách album (có thể kèm tham số lọc)
 export async function fetchAlbums(params = {}) {
   const query = new URLSearchParams(params).toString();
   const endpoint = `/api/albums${query ? `?${query}` : ""}`;
@@ -9,7 +8,6 @@ export async function fetchAlbums(params = {}) {
   return data.albums || [];
 }
 
-// Lấy thông tin album theo ID
 export async function fetchAlbumById(id) {
   const endpoint = `/api/albums/${id}`;
   const data = await apiFetch(endpoint, { fallbackOnError: null });
@@ -17,17 +15,6 @@ export async function fetchAlbumById(id) {
   return data;
 }
 
-// Tạo album mới
-export async function createAlbum(data) {
-  const endpoint = "/api/albums";
-  return await apiFetch(endpoint, {
-    method: "POST",
-    body: JSON.stringify(data),
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
-// Lọc album theo artist_id
 export async function fetchAlbumsByArtist(artist_id) {
   const endpoint = "/api/albums";
   return await apiFetch(endpoint, { fallbackOnError: [] })
