@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@tanstack/react-query": "^5.81.2",
+    "axios": "^1.10.0",
+    "axios-retry": "^4.5.0",
+    "clsx": "^2.1.1",
+    "react-dropzone": "^14.3.8",
+    "react-icons": "^4.10.1",
+    "tailwind-merge": "^3.3.1"
+  }
+}
