@@ -1,4 +1,4 @@
-from database.db import users_collection
+from backend.database.db import users_collection
 from passlib.context import CryptContext
 from bson import ObjectId
 import datetime

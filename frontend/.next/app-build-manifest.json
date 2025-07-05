@@ -21,45 +21,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/profile/page.js"
     ],
-    "/playlist/[id]/page": [
+    "/albums/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/playlist/[id]/page.js"
+      "static/chunks/app/albums/page.js"
     ],
-    "/artist/[id]/page": [
+    "/search/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/artist/[id]/page.js"
-    ],
-    "/admin/layout": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/admin/layout.js"
-    ],
-    "/admin/dashboard/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/admin/dashboard/page.js"
-    ],
-    "/admin/artists/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/admin/artists/page.js"
-    ],
-    "/admin/users/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/admin/users/page.js"
-    ],
-    "/admin/songs/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/admin/songs/page.js"
-    ],
-    "/song/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/song/[id]/page.js"
+      "static/chunks/app/search/page.js"
     ],
     "/_not-found/page": [
       "static/chunks/webpack.js",

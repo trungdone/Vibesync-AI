@@ -1,4 +1,4 @@
-from database.db import artists_collection
+from backend.database.db import artists_collection
 from bson import ObjectId
 from datetime import datetime
 import os

@@ -1,6 +1,6 @@
 # seeds_data/seed_songs.py
 
-from database.db import songs_collection, artists_collection
+from backend.database.db import songs_collection, artists_collection
 from datetime import datetime, timezone
 from seeds_data.seed_artists import seed_artists
 

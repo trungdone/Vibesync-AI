@@ -3,7 +3,14 @@ import { apiFetch } from "../utils";
 
 export async function fetchArtists() {
   const endpoint = "/api/artists";
-  return await apiFetch(endpoint, { fallbackOnError: [] });
+  try {
+    const data = await apiFetch(endpoint, { fallbackOnError: { artists: [] } });
+    // Trích xuất đúng mảng artists
+    return Array.isArray(data) ? data : data.artists || [];
+  } catch (error) {
+    console.error("fetchArtists error:", error);
+    return [];
+  }
 }
 
 export async function fetchArtistById(id) {

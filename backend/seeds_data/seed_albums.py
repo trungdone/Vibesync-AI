@@ -1,4 +1,4 @@
-from database.db import albums_collection
+from backend.database.db import albums_collection
 from datetime import datetime, timezone
 from seeds_data.seed_artists import seed_artists
 from seeds_data.seed_songs import song_map  # Giả sử song_map đã được định nghĩa trong seed_songs.py

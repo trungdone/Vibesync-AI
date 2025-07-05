@@ -3,28 +3,29 @@ import SongList from "../songs/song-list";
 import { fetchSongs } from "@/lib/api";
 
 export default async function NewReleases() {
-  let newReleases = [];
+  let songs = [];
   try {
-    newReleases = await fetchSongs({ sort: "releaseYear", limit: 5 });
-    // Kiểm tra và trích xuất mảng songs nếu newReleases là object
-    newReleases = Array.isArray(newReleases) ? newReleases : newReleases?.songs || [];
+    const response = await fetchSongs({ sort: "releaseYear", limit: 5 });
+    // Đảm bảo lấy đúng mảng songs
+    songs = Array.isArray(response) ? response : response?.songs || [];
   } catch (error) {
-    console.error("Error in NewReleases:", error);
-    newReleases = [];
+    console.error("Error loading new releases:", error);
   }
 
   return (
     <section>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">New Releases</h2>
-        <Link href="/new-releases" className="text-sm text-purple-400 hover:underline">
-          View All
-        </Link>
+<Link href="/new-releases" className="text-sm text-purple-400 hover:underline">
+  View All
+</Link>
+
       </div>
-      {newReleases.length > 0 ? (
-        <SongList songs={newReleases} />
+
+      {songs.length > 0 ? (
+        <SongList songs={songs} />
       ) : (
-        <p>No new releases available</p>
+        <p className="text-gray-400">No new releases available</p>
       )}
     </section>
   );

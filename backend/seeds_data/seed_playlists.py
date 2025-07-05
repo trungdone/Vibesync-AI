@@ -1,5 +1,5 @@
 # seed_playlists.py
-from database.db import playlists_collection, songs_collection
+from backend.database.db import playlists_collection, songs_collection
 from bson import ObjectId
 
 def seed_playlists():
