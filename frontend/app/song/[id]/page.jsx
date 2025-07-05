@@ -13,6 +13,8 @@ import {
   fetchArtistById,
 } from "@/lib/api";
 import SongList from "@/components/songs/song-list";
+import Link from "next/link";
+
 
 export default function SongDetailPage() {
   /* --------------------------------------------------

@@ -17,9 +17,9 @@ from database.repositories.song_repository   import SongRepository
 from database.repositories.album_repository  import AlbumRepository
 
 
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 #  ArtistService
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 class ArtistService:
     def __init__(self):
         self.artist_repo = ArtistRepository()
@@ -46,11 +46,9 @@ class ArtistService:
                     releaseYear=s.get("releaseYear", 0),
                     coverArt=s.get("coverArt"),
                     audioUrl=s.get("audioUrl"),
-                    genre=(
-                        s.get("genre", [])[0]
-                        if isinstance(s.get("genre", []), list) and s.get("genre")
-                        else ""
-                    ),
+                    genre=(s.get("genre", [])[0]
+                           if isinstance(s.get("genre", []), list) and s.get("genre")
+                           else ""),
                 )
                 for s in songs
             ]
@@ -183,9 +181,9 @@ class ArtistService:
             )
 
 
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 #  Singleton & proxy export  (cho search_routes import)
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------
 _artist_service = ArtistService()
 
 

@@ -1,4 +1,3 @@
-# backend/database/db.py
 """
 Module kết nối MongoDB (PyMongo) và cung cấp dependency get_db cho FastAPI
 """
@@ -49,3 +48,23 @@ def get_db():
     (kiểu `pymongo.database.Database`) để thao tác MongoDB.
     """
     return db
+
+# ---------------------------#
+# 6) Script xử lý dữ liệu (nếu cần) #
+# ---------------------------#
+if __name__ == "__main__":
+    # Chỉ chạy khi chạy trực tiếp file này
+    result1 = albums_collection.update_many(
+        {"cover_art": ""},
+        {"$set": {"cover_art": None}}
+    )
+    print(f"Updated {result1.modified_count} documents for cover_art")
+
+    result2 = albums_collection.update_many(
+        {"release_year": {"$lt": 1900}},
+        {"$set": {"release_year": 2025}}
+    )
+    print(f"Updated {result2.modified_count} documents for release_year")
+
+    print("Documents with empty cover_art:", albums_collection.count_documents({"cover_art": ""}))
+    print("Documents with invalid release_year:", albums_collection.count_documents({"release_year": {"$lt": 1900}}))

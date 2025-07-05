@@ -40,3 +40,20 @@ export async function createAlbum(data) {
     throw error;
   }
 }
+
+// Lấy các album theo artist_id
+export async function fetchAlbumsByArtist(artist_id) {
+  const endpoint = "/api/albums";
+  try {
+    const data = await apiFetch(endpoint, { fallbackOnError: [] });
+    const albums = Array.isArray(data.albums)
+      ? data.albums
+      : Array.isArray(data)
+      ? data
+      : [];
+    return albums.filter((album) => album.artist_id === artist_id);
+  } catch (error) {
+    console.error("fetchAlbumsByArtist error:", error);
+    return [];
+  }
+}

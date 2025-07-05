@@ -140,3 +140,21 @@ class UserService:
             avatar=user.get("avatar", ""),
             banned=user.get("banned", False)
         )
+    
+    @staticmethod
+    def toggle_like_song(user_id: str, song_id: str) -> list[str]:
+        user = UserRepository.find_by_id(user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        liked = set(user.get("likedSongs", []))
+        if song_id in liked:
+            liked.remove(song_id)
+        else:
+            liked.add(song_id)
+
+        success = UserRepository.update(user_id, {"likedSongs": list(liked)})
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to update liked songs")
+
+        return list(liked)

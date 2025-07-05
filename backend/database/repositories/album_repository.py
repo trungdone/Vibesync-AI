@@ -9,9 +9,9 @@ from database.db import albums_collection
 
 
 class AlbumRepository:
-    # ------------------------------------------------------------------
-    #  Helpers
-    # ------------------------------------------------------------------
+    def __init__(self):
+        self.collection = albums_collection
+
     @staticmethod
     def _validate_object_id(album_id: str) -> ObjectId:
         try:
@@ -32,11 +32,17 @@ class AlbumRepository:
         except Exception as e:
             raise ValueError(f"Failed to query albums: {e}")
 
-    @staticmethod
-    def find_by_id(album_id: str) -> Optional[Dict]:
+    def find_by_id(self, album_id: str) -> Optional[Dict]:
         return albums_collection.find_one(
             {"_id": AlbumRepository._validate_object_id(album_id)}
         )
+
+    def find_by_title(self, title: str) -> List[Dict]:
+        try:
+            title = title.strip()
+            return list(self.collection.find({"title": {"$regex": f"^{title}$", "$options": "i"}}))
+        except Exception as e:
+            raise ValueError(f"Failed to query albums by title: {str(e)}")
 
     @staticmethod
     def find_by_artist_id(artist_id: ObjectId) -> List[Dict]:
@@ -58,36 +64,46 @@ class AlbumRepository:
     # ------------------------------------------------------------------
     @staticmethod
     def insert(album_data: Dict) -> str:
-        res = albums_collection.insert_one(album_data)
-        return str(res.inserted_id)
+        try:
+            result = albums_collection.insert_one(album_data)
+            return str(result.inserted_id)
+        except Exception as e:
+            raise ValueError(f"Failed to insert album: {str(e)}")
 
     @staticmethod
     def update(album_id: str, update_data: Dict) -> bool:
         update_data["updated_at"] = datetime.utcnow()
-        res = albums_collection.update_one(
-            {"_id": AlbumRepository._validate_object_id(album_id)},
-            {"$set": update_data},
-        )
-        return res.matched_count > 0
+        try:
+            result = albums_collection.update_one(
+                {"_id": AlbumRepository._validate_object_id(album_id)},
+                {"$set": update_data}
+            )
+            return result.matched_count > 0
+        except Exception as e:
+            raise ValueError(f"Failed to update album: {str(e)}")
 
     @staticmethod
     def delete(album_id: str) -> bool:
-        res = albums_collection.delete_one(
-            {"_id": AlbumRepository._validate_object_id(album_id)}
-        )
-        return res.deleted_count > 0
+        try:
+            result = albums_collection.delete_one({"_id": AlbumRepository._validate_object_id(album_id)})
+            return result.deleted_count > 0
+        except Exception as e:
+            raise ValueError(f"Failed to delete album: {str(e)}")
 
     @staticmethod
     def delete_by_artist_id(artist_id: ObjectId) -> bool:
-        res = albums_collection.delete_many(
-            {
-                "$or": [
-                    {"artist_id": str(artist_id)},
-                    {"artist_id": artist_id},
-                ]
-            }
-        )
-        return res.deleted_count > 0
+        try:
+            result = albums_collection.delete_many(
+                {
+                    "$or": [
+                        {"artist_id": str(artist_id)},
+                        {"artist_id": artist_id},
+                    ]
+                }
+            )
+            return result.deleted_count > 0
+        except Exception as e:
+            raise ValueError(f"Failed to delete albums by artist_id: {str(e)}")
 
     # ------------------------------------------------------------------
     #  🔍 SEARCH  (BỔ SUNG)

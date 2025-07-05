@@ -1,7 +1,10 @@
 "use client";
+//auth-context.jsx
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+
+
 
 const AuthContext = createContext({
   user: null,

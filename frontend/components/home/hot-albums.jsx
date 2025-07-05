@@ -1,3 +1,4 @@
+// components/home/hot-albums.jsx
 import Image from "next/image";
 import Link from "next/link";
 import { fetchAlbums } from "@/lib/api/albums";

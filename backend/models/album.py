@@ -16,7 +16,7 @@ class AlbumBase(BaseModel):
     artist_id: str
     cover_art: Optional[str] = Field(
         default=None,
-        description="URL ảnh bìa (có thể để trống – sẽ gán placeholder).",
+        description="URL ảnh bìa (có thể để trống – sẽ gán placeholder).",
     )
     release_year: int
     genre: str
