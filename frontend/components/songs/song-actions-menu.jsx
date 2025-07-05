@@ -2,17 +2,26 @@
 
 import { useState, useEffect } from "react";
 import { addSongToPlaylist, getAllPlaylists } from "@/lib/api/playlists";
+import { useAuth } from "@/context/auth-context";
+
 
 export default function SongActionsMenu({ song }) {
   const [isOpen, setIsOpen] = useState(false);
   const [playlists, setPlaylists] = useState([]);
   const [selectedPlaylist, setSelectedPlaylist] = useState("");
+  const { user } = useAuth(); // 🧠 Get current user
+
 
   useEffect(() => {
-    if (isOpen) {
-      getAllPlaylists().then(setPlaylists);
+    if (isOpen && user?.id) {
+      getAllPlaylists(user.id) // 🔥 Filter by user ID
+        .then(setPlaylists)
+        .catch((err) => {
+          console.error("Failed to fetch user playlists:", err);
+          setPlaylists([]);
+        });
     }
-  }, [isOpen]);
+  }, [isOpen, user]);
 
   const handleAdd = async () => {
     if (!selectedPlaylist) return;
