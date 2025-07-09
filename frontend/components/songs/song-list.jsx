@@ -2,15 +2,14 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Play, Pause, Heart, MoreHorizontal } from "lucide-react";
 import { useMusic } from "@/context/music-context";
 import { formatDuration } from "@/lib/utils";
 import SongActionsMenu from "./song-actions-menu";
-import Link from "next/link";
 import WaveBars from "../ui/WaveBars";
 
-
-export default function SongList({ songs: propSongs }) {
+export default function SongList({ songs }) {
   const { playSong, isPlaying, currentSong, togglePlayPause, nextSong } = useMusic();
 
   const [optionsOpenId, setOptionsOpenId] = useState(null);
@@ -22,7 +21,7 @@ export default function SongList({ songs: propSongs }) {
   const observerRef = useRef(null);
 
   const handlePlayClick = (song) => {
-    if (currentSong?.id?.toString() === song.id?.toString()) {
+    if (currentSong?.id === song.id) {
       togglePlayPause();
     } else {
       playSong(song);
@@ -32,7 +31,7 @@ export default function SongList({ songs: propSongs }) {
   const toggleLike = (songId) => {
     const updated = new Set(likedSongs);
     updated.has(songId) ? updated.delete(songId) : updated.add(songId);
-    setLikedSongs(new Set(updated));
+    setLikedSongs(updated);
   };
 
   const toggleOptions = (songId) => {
@@ -51,7 +50,6 @@ export default function SongList({ songs: propSongs }) {
     setOptionsOpenId(songId);
   };
 
-  // Close popup on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (popupRef.current && !popupRef.current.contains(event.target)) {
@@ -62,7 +60,6 @@ export default function SongList({ songs: propSongs }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Auto-close when button is out of view
   useEffect(() => {
     if (!optionsOpenId || !moreBtnRefs.current[optionsOpenId]) return;
 
@@ -81,7 +78,6 @@ export default function SongList({ songs: propSongs }) {
     return () => observer.disconnect();
   }, [optionsOpenId]);
 
-  // Other actions
   const handleLyrics = (songId) => {
     console.log(`View lyrics for song ${songId}`);
     setOptionsOpenId(null);
@@ -125,8 +121,8 @@ export default function SongList({ songs: propSongs }) {
           </tr>
         </thead>
         <tbody>
-          {propSongs.map((song, index) => {
-            const isCurrent = currentSong?.id?.toString() === song.id?.toString();
+          {songs.map((song, index) => {
+            const isCurrent = currentSong?.id === song.id;
             const isLiked = likedSongs.has(song.id);
 
             return (
@@ -135,16 +131,11 @@ export default function SongList({ songs: propSongs }) {
                 className={`transition hover:bg-white/10 ${isCurrent ? "bg-white/10" : ""}`}
               >
                 <td className="p-4 text-gray-400">
-                  {isCurrent && isPlaying ? (
-                    <WaveBars />
-                  ) : (
-                    index + 1
-                  )}
+                  {isCurrent && isPlaying ? <WaveBars /> : index + 1}
                 </td>
                 <td className="p-4">
                   <div className="flex items-center gap-4">
-                    
-                      <div
+                    <div
                       className="relative w-12 h-12 cursor-pointer group"
                       onClick={() => handlePlayClick(song)}
                     >
@@ -155,7 +146,6 @@ export default function SongList({ songs: propSongs }) {
                         className="object-cover rounded group-hover:opacity-80 transition"
                       />
                     </div>
-                    
                     <div className="flex flex-col">
                       <Link
                         href={`/song/${song.id}`}
@@ -170,13 +160,12 @@ export default function SongList({ songs: propSongs }) {
                         {song.artist}
                       </Link>
                     </div>
-                    
                   </div>
                 </td>
-
-
                 <td className="p-4 hidden md:table-cell text-gray-300">{song.album}</td>
-                <td className="p-4 hidden md:table-cell text-gray-300">{formatDuration(song.duration)}</td>
+                <td className="p-4 hidden md:table-cell text-gray-300">
+                  {formatDuration(song.duration)}
+                </td>
                 <td className="p-4 text-right">
                   <button
                     ref={(el) => (moreBtnRefs.current[song.id] = el)}
@@ -192,9 +181,8 @@ export default function SongList({ songs: propSongs }) {
         </tbody>
       </table>
 
-      {/* Popup for selected song */}
       {optionsOpenId && (() => {
-        const song = propSongs.find((s) => s.id === optionsOpenId);
+        const song = songs.find((s) => s.id === optionsOpenId);
         if (!song) return null;
 
         return (
@@ -218,7 +206,6 @@ export default function SongList({ songs: propSongs }) {
                 </div>
                 <div className="text-sm text-gray-400">{song.artist}</div>
 
-                {/* Tooltip */}
                 <div className="absolute bottom-full left-0 mb-2 w-max bg-black/90 text-xs text-white px-3 py-2 rounded hidden group-hover:block z-50 whitespace-nowrap">
                   <div><strong>Album:</strong> {song.album || "Unknown"}</div>
                   <div><strong>Genre:</strong> {Array.isArray(song.genre) ? song.genre.join(", ") : song.genre || "Unknown"}</div>

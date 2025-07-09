@@ -45,4 +45,3 @@ class AlbumService:
             raise HTTPException(status_code=400, detail="ID album không hợp lệ")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Không thể lấy thông tin album: {str(e)}")
-

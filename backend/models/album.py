@@ -6,10 +6,10 @@ from bson import ObjectId
 class AlbumBase(BaseModel):
     title: str
     artist_id: str
-    cover_art: Optional[HttpUrl] = None  # Cho phép cover_art là None
+    cover_art: Optional[HttpUrl] = None  # Cho phép rỗng
     release_year: int
-    genres: List[str]
-    songs: List[str]  # Danh sách ObjectId của bài hát
+    genres: List[str]  # Dùng plural "genres" để mô tả đa thể loại
+    songs: List[str]   # Danh sách ObjectId dưới dạng string
 
     @validator("release_year")
     def validate_release_year(cls, v):

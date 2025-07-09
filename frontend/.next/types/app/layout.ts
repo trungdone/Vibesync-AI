@@ -1,4 +1,4 @@
-// File: D:\daMusic003\Vibesync-AI\frontend\app\layout.jsx
+// File: D:\t66666666\Vibesync-AI-main\frontend\app\layout.jsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

@@ -21,13 +21,14 @@ class UserInDB(UserBase):
     created_at: datetime
     avatar: Optional[str] = None
     banned: bool = False
+
     likedSongs: list[str] = []  # ⬅️ Add this field
 
     
 
-    class Config:
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
+class Config:
+     arbitrary_types_allowed = True
+     json_encoders = {ObjectId: str}
 
 class UserRegister(BaseModel):
     name: str

@@ -40,7 +40,6 @@ export async function getAllPublicPlaylists() {
   const res = await fetch(`${API_BASE}/playlists?isPublic=true`, {
     cache: "no-store",
   });
-
   if (!res.ok) throw new Error("Failed to fetch public playlists");
   return res.json();
 }
@@ -50,7 +49,6 @@ export async function getPlaylistById(id) {
   const res = await fetch(`${API_BASE}/playlists/${id}`, {
     cache: "no-store",
   });
-
   if (!res.ok) throw new Error("Failed to fetch playlist");
   return res.json();
 }

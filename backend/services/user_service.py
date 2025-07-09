@@ -139,6 +139,7 @@ class UserService:
             created_at=user.get("created_at", datetime.utcnow()),
             avatar=user.get("avatar", ""),
             banned=user.get("banned", False)
+
         )
     
     @staticmethod
@@ -158,3 +159,4 @@ class UserService:
             raise HTTPException(status_code=500, detail="Failed to update liked songs")
 
         return list(liked)
+

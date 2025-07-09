@@ -1,36 +1,39 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Home, Search, Library, Music, Heart, ListMusic, PlusCircle, Play
+  Home,
+  Search,
+  Library,
+  Music,
+  Heart,
+  ListMusic,
+  PlusCircle,
+  Play,
 } from "lucide-react";
+
 import CustomCreatePlaylistModal from "@/components/playlist/CustomCreatePlaylistModal";
-import { getAllPlaylists } from "@/lib/api/playlists";
+import { getAllPlaylists, createPlaylist } from "@/lib/api/playlists";
 import { useAuth } from "@/context/auth-context";
 import { useMusic } from "@/context/music-context";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
-  const { setContext, setContextId, updateSongsForContext, playSong, songs } = useMusic();
+  const {
+    setContext,
+    setContextId,
+    updateSongsForContext,
+    playSong,
+    songs,
+  } = useMusic();
+
   const [playlists, setPlaylists] = useState([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  const handleSubmit = async (title, description, isPublic) => {
-    if (!user?.id) return;
-    await createPlaylist({
-      title,
-      description,
-      isPublic,
-      creator: user.id,
-    });
-  };
-
   useEffect(() => {
-    if (!user?.id) return;
-
     if (!user?.id) return;
 
     async function loadPlaylists() {
@@ -42,11 +45,18 @@ export default function Sidebar() {
       }
     }
 
-
     loadPlaylists();
   }, [user]);
 
   const isActive = (path) => pathname === path;
+
+  const handleSubmit = async (title, description, isPublic) => {
+    if (!user?.id) return;
+    await createPlaylist({ title, description, isPublic, creator: user.id });
+
+    const latest = await getAllPlaylists(user.id);
+    setPlaylists(latest || []);
+  };
 
   const handlePlayPlaylist = async (playlistId) => {
     setContext("playlist");
@@ -68,21 +78,36 @@ export default function Sidebar() {
         </Link>
 
         <nav className="space-y-1">
-          <Link href="/" className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${
-            isActive("/") ? "bg-white/10 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white"
-          }`}>
+          <Link
+            href="/"
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${
+              isActive("/")
+                ? "bg-white/10 text-white"
+                : "text-gray-400 hover:bg-white/5 hover:text-white"
+            }`}
+          >
             <Home size={20} />
             <span>Home</span>
           </Link>
-          <Link href="/search" className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${
-            isActive("/search") ? "bg-white/10 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white"
-          }`}>
+          <Link
+            href="/search"
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${
+              isActive("/search")
+                ? "bg-white/10 text-white"
+                : "text-gray-400 hover:bg-white/5 hover:text-white"
+            }`}
+          >
             <Search size={20} />
             <span>Search</span>
           </Link>
-          <Link href="/library" className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${
-            isActive("/library") ? "bg-white/10 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white"
-          }`}>
+          <Link
+            href="/library"
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm ${
+              isActive("/library")
+                ? "bg-white/10 text-white"
+                : "text-gray-400 hover:bg-white/5 hover:text-white"
+            }`}
+          >
             <Library size={20} />
             <span>Your Library</span>
           </Link>
@@ -90,7 +115,9 @@ export default function Sidebar() {
 
         <div className="mt-8">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-gray-400 font-medium text-xs uppercase tracking-wider">Playlists</h3>
+            <h3 className="text-gray-400 font-medium text-xs uppercase tracking-wider">
+              Playlists
+            </h3>
             <button
               onClick={() => setIsCreateOpen(true)}
               className="text-gray-400 hover:text-white"
@@ -103,15 +130,6 @@ export default function Sidebar() {
           <CustomCreatePlaylistModal
             open={isCreateOpen}
             onClose={() => setIsCreateOpen(false)}
-            onPlaylistCreated={async () => {
-              try {
-                if (!user?.id) return;
-                const latest = await getAllPlaylists(user.id);
-                setPlaylists(latest || []);
-              } catch (e) {
-                console.error("Failed to refresh playlists:", e);
-              }
-            }}
             onSubmit={handleSubmit}
           />
 
@@ -127,7 +145,10 @@ export default function Sidebar() {
             </Link>
 
             {playlists.map((playlist) => (
-              <div key={playlist.id} className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm hover:bg-white/5">
+              <div
+                key={playlist.id}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm hover:bg-white/5"
+              >
                 <button
                   onClick={() => handlePlayPlaylist(playlist.id)}
                   className="text-gray-400 hover:text-white w-6 h-6 flex items-center justify-center"

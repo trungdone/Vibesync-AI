@@ -43,7 +43,7 @@ class AdminArtistService:
             created_at=artist.get("created_at", datetime.utcnow()),
             updated_at=artist.get("updated_at", datetime.utcnow()),
         )
-    
+
     def search_artists(self, name: str) -> list[ArtistInDB]:
         artists = self.repo.find_by_name(name)
         return [
@@ -67,7 +67,7 @@ class AdminArtistService:
         existing_artist = self.repo.find_by_name(data.name)
         if existing_artist:
             raise ValueError("Artist with this name already exists")
-        
+
         artist_dict = data.dict()
         artist_dict["created_at"] = datetime.utcnow()
         artist_dict["updated_at"] = datetime.utcnow()

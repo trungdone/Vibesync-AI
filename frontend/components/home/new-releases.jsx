@@ -5,6 +5,7 @@ import { fetchSongs } from "@/lib/api";
 export default async function NewReleases() {
   try {
     const response = await fetchSongs({ sort: "releaseYear", limit: 8 });
+
     const songs = Array.isArray(response) ? response : response?.songs || [];
 
     return (
