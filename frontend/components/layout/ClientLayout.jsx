@@ -8,6 +8,8 @@ import Player from "@/components/player";
 import Header from "@/components/layout/header";
 import { MusicProvider } from "@/context/music-context";
 import { useAuth } from "@/context/auth-context";
+import Footer from "@/components/layout/Footer";
+
 
 export default function ClientLayout({ children }) {
   const { user, isAuthenticated, loading } = useAuth();
@@ -40,9 +42,15 @@ return (
       <Header />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto p-4">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4">{children}
+                  <Footer />
+
+        </main>
+        
       </div>
+      
       <Player />
+      
     </div>
   </MusicProvider>
 );
