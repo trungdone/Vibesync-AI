@@ -12,7 +12,7 @@ import {
 import { useMusic } from "@/context/music-context";
 import { useAuth } from "@/context/auth-context";
 import { formatDuration } from "@/lib/utils";
-import { toggleLikeSong } from "@/lib/api/user";
+import { getLikedSongs } from "@/lib/api/liked-songs";
 
 export default function Player() {
   const {
@@ -55,6 +55,19 @@ export default function Player() {
       }).catch((err) => console.error("❌ History Error:", err));
     }
   }, [currentSong]);
+
+  // help likesongs works
+    useEffect(() => {
+      async function fetchLiked() {
+        if (!user?.id || !currentSong?.id) return;
+        const data = await getLikedSongs(user.id);
+        setLikedSongs(new Set(data));
+      }
+      fetchLiked();
+    }, [currentSong, user]);
+
+
+
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -121,10 +134,18 @@ export default function Player() {
   };
 
   const handleToggleLike = async () => {
-    if (!currentSong?.id || !token) return;
+    if (!currentSong?.id || !user?.id) return;
     try {
-      const data = await toggleLikeSong(currentSong.id, token);
-      setLikedSongs(new Set(data.likedSongs));
+      const { liked } = await toggleLikeSong(currentSong.id, user.id);
+      setLikedSongs((prev) => {
+        const newSet = new Set(prev);
+        if (liked) {
+          newSet.add(currentSong.id);
+        } else {
+          newSet.delete(currentSong.id);
+        }
+        return newSet;
+      });
     } catch (err) {
       console.error("❌ Failed to toggle like:", err);
     }

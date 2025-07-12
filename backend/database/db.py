@@ -26,6 +26,7 @@ albums_collection = db["albums"]
 chat_history_collection = db["chat_history"]
 follows_collection = db["follows"]
 likes_collection = db["likes"]
+liked_songs_collection = db["liked_songs"]
 
 
 # Password hash setup
