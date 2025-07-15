@@ -5,10 +5,14 @@ from datetime import timedelta
 from models.user import UserRegister, UserUpdate
 from services.user_service import UserService
 from models.user import UserOut
+from fastapi import Body
+from passlib.context import CryptContext
 
 from auth import create_access_token, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES
 
 router = APIRouter(tags=["user"])
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 @router.post("/register")
 async def register(user: UserRegister):
@@ -34,6 +38,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 @router.get("/me", response_model=UserOut)
 def get_me(current_user: UserOut = Depends(get_current_user)):
     return current_user
+
+
 
 @router.get("/users")
 async def get_users(current_user: dict = Depends(get_current_user)):
@@ -102,3 +108,19 @@ async def get_followed_artists(current_user: dict = Depends(get_current_user)):
 
     return {"following": artists}
 
+@router.post("/change-password")
+def change_password(
+    old_password: str = Body(...),
+    new_password: str = Body(...),
+    current_user: dict = Depends(get_current_user)
+):
+    user = UserService.get_user_by_id(current_user["id"])
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if not pwd_context.verify(old_password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect old password")
+
+    hashed_new = pwd_context.hash(new_password)
+    UserService.update_password(user.id, hashed_new)
+    return {"message": "Password updated successfully"}

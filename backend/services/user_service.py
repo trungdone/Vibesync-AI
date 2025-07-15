@@ -160,3 +160,8 @@ class UserService:
 
         return list(liked)
 
+    @staticmethod
+    def update_password(user_id: str, hashed_password: str):
+        success = UserRepository.update(user_id, {"hashed_password": hashed_password})
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to update password")
