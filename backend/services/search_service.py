@@ -55,7 +55,8 @@ class SearchService:
                         {"artist": regex}
                     ]
                 }, {
-                    "_id": 1, "title": 1, "artist": 1, "coverArt": 1, "duration": 1
+                    "_id": 1, "title": 1, "artist": 1, "coverArt": 1, "duration": 1,    "album": 1   # ✅ Add this line
+
                 })
                 results["songs"] = [SearchService._convert_id(s) for s in songs]
                 print(f"[✅ SONGS] Found {len(results['songs'])} songs")
