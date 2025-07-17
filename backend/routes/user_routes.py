@@ -7,6 +7,8 @@ from services.user_service import UserService
 from models.user import UserOut
 from fastapi import Body
 from passlib.context import CryptContext
+from fastapi import UploadFile, File
+from utils.cloudinary_upload import upload_image  # Use your working uploader
 
 from auth import create_access_token, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES
 
@@ -124,3 +126,47 @@ def change_password(
     hashed_new = pwd_context.hash(new_password)
     UserService.update_password(user.id, hashed_new)
     return {"message": "Password updated successfully"}
+
+
+
+from fastapi import UploadFile, File, Depends, HTTPException
+import os, tempfile
+from utils.cloudinary_upload import upload_image, CLOUDINARY_BASE_URL
+from auth import get_current_user
+from database.db import db
+
+
+ALLOWED_EXTENSIONS = [".jpg", ".jpeg"]
+MAX_FILE_SIZE_MB = 5
+
+@router.post("/avatar")
+async def upload_user_avatar(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="Only JPG/JPEG images are allowed.")
+
+    contents = await file.read()
+    if len(contents) > MAX_FILE_SIZE_MB * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File size exceeds 5MB.")
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
+        tmp.write(contents)
+        temp_path = tmp.name
+
+    try:
+        result = upload_image(temp_path)
+
+        public_url = result.get("secure_url")
+        if not public_url:
+            raise HTTPException(status_code=500, detail="Cloudinary did not return a URL")
+
+        UserService.update_user_with_dict(current_user["id"], {"avatar": public_url})
+
+        return {"avatar": public_url}
+
+    finally:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)

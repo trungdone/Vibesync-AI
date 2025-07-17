@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation"
 import { Music, UploadCloud } from "lucide-react"
 import axios from "axios"
 
+const CLOUDINARY_BASE_URL = "https://res.cloudinary.com/<your_cloud_name>/"
+
 export default function ProfilePage() {
   const [user, setUser] = useState(null)
   const [oldPassword, setOldPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
-  const [avatar, setAvatar] = useState(null)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const router = useRouter()
@@ -39,6 +40,22 @@ export default function ProfilePage() {
     const file = e.target.files[0]
     if (!file) return
 
+    // ✅ Validate file extension
+    const ext = file.name.toLowerCase().split(".").pop()
+    if (!["jpg", "jpeg"].includes(ext)) {
+      setError("Only JPG files are allowed.")
+      return
+    }
+
+    // ✅ Validate file size (<5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError("File size must be less than 5MB.")
+      return
+    }
+
+    setError("")
+    setSuccess("")
+
     const formData = new FormData()
     formData.append("file", file)
 
@@ -49,6 +66,8 @@ export default function ProfilePage() {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       })
+
+      // ✅ Update avatar path only
       setUser({ ...user, avatar: res.data.avatar })
       setSuccess("Avatar updated!")
     } catch (err) {
@@ -98,9 +117,14 @@ export default function ProfilePage() {
         {/* 🖼 Avatar Section */}
         <div className="space-y-4 text-center">
           <img
-            src={user.avatar || "/placeholder.svg"}
+            src={
+              user.avatar?.startsWith("http")
+                ? user.avatar
+                : `${CLOUDINARY_BASE_URL}${user.avatar || "images/default.jpg"}`
+            }
             alt="Avatar"
             className="w-24 h-24 rounded-full mx-auto object-cover border-2 border-purple-500"
+            onError={(e) => (e.target.src = "/placeholder.svg")}
           />
           <label
             htmlFor="avatar"
@@ -111,7 +135,7 @@ export default function ProfilePage() {
             <input
               type="file"
               id="avatar"
-              accept="image/*"
+              accept="image/jpeg"
               className="hidden"
               onChange={handleAvatarChange}
             />
@@ -121,12 +145,10 @@ export default function ProfilePage() {
         {/* 🔑 Change Password */}
         <form onSubmit={handlePasswordChange} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              Current Password
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Current Password</label>
             <input
               type="password"
-              className="input-field"
+              className="input-field w-full px-3 py-2 bg-background border border-border rounded-md"
               placeholder="Enter current password"
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
@@ -135,12 +157,10 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              New Password
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">New Password</label>
             <input
               type="password"
-              className="input-field"
+              className="input-field w-full px-3 py-2 bg-background border border-border rounded-md"
               placeholder="Enter new password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
@@ -148,7 +168,10 @@ export default function ProfilePage() {
             />
           </div>
 
-          <button type="submit" className="btn-primary w-full">
+          <button
+            type="submit"
+            className="btn-primary w-full bg-purple-700 hover:bg-purple-600 text-white px-4 py-2 rounded-md transition"
+          >
             Update Password
           </button>
         </form>

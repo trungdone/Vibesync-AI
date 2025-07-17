@@ -165,3 +165,18 @@ class UserService:
         success = UserRepository.update(user_id, {"hashed_password": hashed_password})
         if not success:
             raise HTTPException(status_code=500, detail="Failed to update password")
+        
+
+# ...existing code...
+    @staticmethod
+    def update_user_with_dict(user_id: str, data: dict):
+        if hasattr(data, "dict"):
+            update_data = data.dict(exclude_unset=True)
+        else:
+            update_data = data  # Assume it's already a dict
+
+        success = UserRepository.update(user_id, update_data)
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to update user")
+        return success
+# ...existing code...
