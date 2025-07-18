@@ -4,6 +4,8 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Music, UploadCloud } from "lucide-react"
 import axios from "axios"
+import { useAuth } from "@/context/auth-context";
+
 
 const CLOUDINARY_BASE_URL = "https://res.cloudinary.com/<your_cloud_name>/"
 
@@ -14,6 +16,10 @@ export default function ProfilePage() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const router = useRouter()
+  const [newName, setNewName] = useState("")
+  const { refreshUser } = useAuth();
+
+  
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -37,43 +43,45 @@ export default function ProfilePage() {
   }, [])
 
   const handleAvatarChange = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
+  const file = e.target.files[0];
+  if (!file) return;
 
-    // ✅ Validate file extension
-    const ext = file.name.toLowerCase().split(".").pop()
-    if (!["jpg", "jpeg"].includes(ext)) {
-      setError("Only JPG files are allowed.")
-      return
-    }
-
-    // ✅ Validate file size (<5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError("File size must be less than 5MB.")
-      return
-    }
-
-    setError("")
-    setSuccess("")
-
-    const formData = new FormData()
-    formData.append("file", file)
-
-    try {
-      const res = await axios.post("http://localhost:8000/user/avatar", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
-
-      // ✅ Update avatar path only
-      setUser({ ...user, avatar: res.data.avatar })
-      setSuccess("Avatar updated!")
-    } catch (err) {
-      setError("Failed to upload avatar")
-    }
+  const ext = file.name.toLowerCase().split(".").pop();
+  if (!["jpg", "jpeg"].includes(ext)) {
+    setError("Only JPG files are allowed.");
+    return;
   }
+
+  if (file.size > 5 * 1024 * 1024) {
+    setError("File size must be less than 5MB.");
+    return;
+  }
+
+  setError("");
+  setSuccess("");
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const res = await axios.post("http://localhost:8000/user/avatar", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    // ✅ Refresh global user context (this updates the header avatar)
+    await refreshUser();
+
+    // ✅ Update local state to reflect new avatar immediately
+    setUser({ ...user, avatar: res.data.avatar });
+    setSuccess("Avatar updated!");
+  } catch (err) {
+    setError("Failed to upload avatar");
+  }
+};
+
 
   const handlePasswordChange = async (e) => {
     e.preventDefault()
@@ -142,8 +150,56 @@ export default function ProfilePage() {
           </label>
         </div>
 
+        {/* 📝 Edit Display Name */}
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault()
+            setError("")
+            setSuccess("")
+
+            try {
+              await axios.patch(
+                "http://localhost:8000/user/user/update-name", // <-- add /user
+
+                { name: newName },
+                {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                  },
+                }
+              )
+              await refreshUser();
+              setUser({ ...user, name: newName })
+              setSuccess("Name updated successfully")
+            } catch (err) {
+              setError("Failed to update name")
+            }
+          }}
+          className="space-y-4"
+        >
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Display Name</label>
+            <input
+              type="text"
+              className="input-field w-full px-3 py-2 bg-background border border-border rounded-md"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            className="btn-primary w-full bg-purple-700 hover:bg-purple-600 text-white px-4 py-2 rounded-md transition"
+          >
+            Update Name
+          </button>
+        </form>
+
+
+
         {/* 🔑 Change Password */}
         <form onSubmit={handlePasswordChange} className="space-y-4">
+          
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Current Password</label>
             <input

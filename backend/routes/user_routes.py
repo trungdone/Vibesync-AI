@@ -9,6 +9,7 @@ from fastapi import Body
 from passlib.context import CryptContext
 from fastapi import UploadFile, File
 from utils.cloudinary_upload import upload_image  # Use your working uploader
+from models.user import UserInDB
 
 from auth import create_access_token, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES
 
@@ -126,6 +127,15 @@ def change_password(
     hashed_new = pwd_context.hash(new_password)
     UserService.update_password(user.id, hashed_new)
     return {"message": "Password updated successfully"}
+
+
+@router.patch("/user/update-name")
+async def update_user_name(
+    name: str = Body(..., embed=True),
+    current_user: dict = Depends(get_current_user),
+):
+    updated_user = UserService.update_user_name(current_user["id"], name)
+    return updated_user
 
 
 
