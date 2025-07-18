@@ -12,7 +12,7 @@ import {
 import { useMusic } from "@/context/music-context";
 import { useAuth } from "@/context/auth-context";
 import { formatDuration } from "@/lib/utils";
-import { getLikedSongs } from "@/lib/api/liked-songs";
+import { getLikedSongs, toggleLikeSong } from "@/lib/api/liked-songs";
 
 export default function Player() {
   const {
